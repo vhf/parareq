@@ -1,23 +1,21 @@
 defmodule Head do
   @headers [:host, :path_or_url]
 
-  def parse(line) do
-    xs = line
-    |> String.split("\t")
-
-    Enum.zip(@headers, xs)
+  def split(line) do
+    line |> String.split("\t")
   end
 
   def clean(line) do
-    length(line) == 2
+    2 == length(line)
   end
 
   def construct(line) do
+    xs = Enum.zip(@headers, line)
     cond do
-      String.starts_with?(line[:path_or_url], "http") ->
-        line[:path_or_url]
+      String.starts_with?(xs[:path_or_url], "http") ->
+        xs[:path_or_url]
       true ->
-        "http://" <> line[:host] <> line[:path_or_url]
+        "http://" <> xs[:host] <> xs[:path_or_url]
     end
   end
 
@@ -50,9 +48,9 @@ defmodule Head do
     good = File.open!("./output/good", [:read, :write, :read_ahead, :append, :delayed_write])
     IO.stream(:stdio, :line)
     |> Stream.map(&String.strip/1)
-    |> Stream.map(&parse(&1))
+    |> Stream.map(&split(&1))
     |> Stream.filter(&clean(&1))
-    |> Stream.filter(&construct(&1))
+    |> Stream.map(&construct(&1))
     |> ParallelStream.map(&dispatch(&1), num_workers: 10000, worker_work_ratio: 1)
     |> ParallelStream.map(&results(&1, done, fail, good), num_workers: 75, worker_work_ratio: 200)
     |> Stream.run
