@@ -5,8 +5,14 @@ defmodule Head do
     xs = line
     |> String.split("\t")
 
-    line = Enum.zip(@headers, xs)
+    Enum.zip(@headers, xs)
+  end
 
+  def clean(line) do
+    length(line) == 2
+  end
+
+  def construct(line) do
     cond do
       String.starts_with?(line[:path_or_url], "http") ->
         line[:path_or_url]
@@ -45,6 +51,8 @@ defmodule Head do
     IO.stream(:stdio, :line)
     |> Stream.map(&String.strip/1)
     |> Stream.map(&parse(&1))
+    |> Stream.filter(&clean(&1))
+    |> Stream.filter(&construct(&1))
     |> ParallelStream.map(&dispatch(&1), num_workers: 10000, worker_work_ratio: 1)
     |> ParallelStream.map(&results(&1, done, fail, good), num_workers: 75, worker_work_ratio: 200)
     |> Stream.run
