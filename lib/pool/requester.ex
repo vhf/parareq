@@ -8,13 +8,28 @@ defmodule Pool.Requester do
     end
   end
 
-  def head(url) do
-    result = HTTPoison.head(url, [], [hackney: [follow_redirect: false]])
+  def head(%{url: url, done: done, fail: fail, good: good}) do
+    req = HTTPoison.head(url, [], [hackney: [follow_redirect: false]])
+    result =
+      case req do
+       {:ok, response} -> success(url, response)
+       {:error, %HTTPoison.Error{id: _, reason: reason}} -> {:error, [url: url, reason: Atom.to_string(reason)]}
+       {:error, reason} -> {:error, [url: url, reason: reason]}
+       _ -> {:error, [url: url, reason: "drown"]}
+      end
     case result do
-     {:ok, response} -> success(url, response)
-     {:error, %HTTPoison.Error{id: _, reason: reason}} -> {:error, [url: url, reason: Atom.to_string(reason)]}
-     {:error, reason} -> {:error, [url: url, reason: reason]}
-     _ -> {:error, [url: url, reason: "drown"]}
+      nil -> :ok
+      _ -> write_results(result, done, fail, good)
     end
+  end
+
+  defp write_results(result, done, fail, good) do
+    {kw, data} = result
+    case kw do
+     :ok -> IO.write good, "#{data[:status_code]}\t#{data[:url]}\t#{data[:content_type]}\n"
+     :error -> IO.write fail, "#{data[:reason]}\t#{data[:url]}\n"
+    end
+    IO.write done, "#{data[:url]}\n"
+    :ok
   end
 end

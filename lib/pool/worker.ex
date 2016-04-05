@@ -14,7 +14,7 @@ defmodule Pool.Worker do
     {:reply, result, state}
   end
 
-  def request(pid, value) do
-    :gen_server.call(pid, value)
+  def request(pid, data) do
+    :gen_server.call(pid, data)
   end
 end

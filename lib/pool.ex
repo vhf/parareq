@@ -9,8 +9,8 @@ defmodule Pool do
     poolboy_config = [
       {:name, {:local, pool_name()}},
       {:worker_module, Pool.Worker},
-      {:size, 10000},
-      {:max_overflow, 10}
+      {:size, 101_000},
+      {:max_overflow, 5_000}
     ]
 
     children = [
@@ -30,11 +30,14 @@ defmodule Pool do
   end
 
   defp put_in_pool(url) do
+    done = File.open!("./output/done", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
+    fail = File.open!("./output/fail", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
+    good = File.open!("./output/good", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
     try do
       :poolboy.transaction(
         pool_name(),
-        fn(pid) -> Pool.Worker.request(pid, url) end,
-        5000 # timeout in ms
+        fn(pid) -> Pool.Worker.request(pid, %{url: url, done: done, fail: fail, good: good}) end,
+        50_000 # timeout in ms
       )
     rescue
       _ -> nil

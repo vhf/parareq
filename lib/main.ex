@@ -1,58 +1,70 @@
 defmodule Main do
   @headers [:host, :path_or_url]
 
-  def split(line) do
-    String.strip(line) |> String.split("\t")
+  defp split(line) do
+    line
+    |> HtmlEntities.decode # does it work?
+    |> String.strip
+    |> String.split("\t")
+    |> Enum.map(&String.strip/1)
   end
 
-  def clean(line) do
+  defp clean(line, bad) do
     last = List.last(line)
-    2 == length(line) and
-    not ((not String.starts_with?(last, "http://") or not String.starts_with?(last, "https://")) and String.contains?(last, "://"))
+    test =
+      cond do
+        2 != length(line) -> false
+        length(String.split(last, "://")) > 2 -> false
+        true -> true
+      end
+
+    if not test do
+      IO.write bad, "unclean " <> List.to_string(line) <> "\n"
+    end
+    test
   end
 
-  def construct(line) do
+  defp construct(line) do
     xs = Enum.zip(@headers, line)
-    cond do
-      String.starts_with?(xs[:path_or_url], "//") ->
-        "http:" <> xs[:path_or_url]
-      String.starts_with?(xs[:path_or_url], "http") ->
-        xs[:path_or_url]
-      String.starts_with?(xs[:path_or_url], "/") ->
-        xs[:path_or_url]
-      true ->
-        "http://" <> xs[:host] <> "/" <> xs[:path_or_url]
-    end
+    url =
+      cond do
+        # //example.com/page.html -> http://example.com/page.html
+        String.starts_with?(xs[:path_or_url], "//") ->
+          "http:" <> xs[:path_or_url]
+        # http://example.com/page.html -> http://example.com/page.html
+        String.starts_with?(xs[:path_or_url], "http") ->
+          xs[:path_or_url]
+        # /example.com/page.html -> http://example.com/page.html
+        String.starts_with?(xs[:path_or_url], "/") ->
+          "http://" <> xs[:host] <> xs[:path_or_url]
+        # page.html -> http://example.com/page.html
+        true ->
+          "http://" <> xs[:host] <> "/" <> xs[:path_or_url]
+      end
+    url
   end
 
-  def validate(url) do
-    case Validation.validate(url) do
-      {:ok, _} -> true
-      _ -> false
+  defp validate(url, bad) do
+    test =
+      case Validation.validate(url) do
+        {:ok, _} -> true
+        _ -> false
+      end
+    if not test do
+      IO.write bad, "invalid " <> url <> "\n"
     end
-  end
-
-  defp results(result, done, fail, good) do
-    {kw, data} = result
-    case kw do
-     :ok -> IO.write good, "#{data[:status_code]}\t#{data[:url]}\t#{data[:content_type]}\n"
-     :error -> IO.write fail, "#{data[:reason]}\t#{data[:url]}\n"
-    end
-    IO.write done, "#{data[:url]}\n"
-    :ok
+    test
   end
 
   def main(_args) do
-    done = File.open!("./output/done", [:read, :write, :read_ahead, :append, :delayed_write])
-    fail = File.open!("./output/fail", [:read, :write, :read_ahead, :append, :delayed_write])
-    good = File.open!("./output/good", [:read, :write, :read_ahead, :append, :delayed_write])
-    IO.stream(:stdio, :line)
+    bad = File.open!("./output/bad", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
+    :stdio
+    |> IO.stream(:line)
     |> Stream.map(&split(&1))
-    |> Stream.filter(&clean(&1))
+    |> Stream.filter(&clean(&1, bad))
     |> Stream.map(&construct(&1))
-    |> Stream.filter(&validate(&1))
-    |> ParallelStream.map(&Pool.request(&1), num_workers: 10000, worker_work_ratio: 1)
-    |> ParallelStream.map(&results(&1, done, fail, good), num_workers: 75, worker_work_ratio: 200)
+    |> Stream.filter(&validate(&1, bad))
+    |> Nile.pmap(&Pool.request(&1), concurrency: 100000, timeout: 60_000)
     |> Stream.run
   end
 end

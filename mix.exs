@@ -7,8 +7,7 @@ defmodule Head.Mixfile do
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     escript: [main_module: Main],
-    #  default_task: "run"
+     escript: [main_module: Main, emu_args: "+P 10000000"],
      deps: deps]
   end
 
@@ -27,7 +26,10 @@ defmodule Head.Mixfile do
     [
       {:httpoison, "~> 0.8.2"},
       {:poolboy, "~> 1.5"},
-      {:parallel_stream, "~> 1.0.3"}
+      {:html_entities, "~> 0.3"},
+      {:dogma, "~> 0.1", only: :dev},
+      {:credo, "~> 0.3", only: [:dev, :test]},
+      {:nile, "~> 0.1.3"}
     ]
   end
 end
