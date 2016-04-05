@@ -26,7 +26,6 @@ defmodule Head.Mixfile do
     [
       {:httpoison, "~> 0.8.2"},
       {:poolboy, "~> 1.5"},
-      {:html_entities, "~> 0.3"},
       {:dogma, "~> 0.1", only: :dev},
       {:credo, "~> 0.3", only: [:dev, :test]},
       {:nile, "~> 0.1.3"}

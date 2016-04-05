@@ -3,18 +3,16 @@ defmodule Main do
 
   defp split(line) do
     line
-    |> HtmlEntities.decode # does it work?
     |> String.strip
+    |> String.replace("&amp;", "&")
     |> String.split("\t")
     |> Enum.map(&String.strip/1)
   end
 
   defp clean(line, bad) do
-    last = List.last(line)
     test =
       cond do
         2 != length(line) -> false
-        length(String.split(last, "://")) > 2 -> false
         true -> true
       end
 
