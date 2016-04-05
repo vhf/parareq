@@ -42,18 +42,6 @@ defmodule Main do
     url
   end
 
-  defp validate(url, bad) do
-    test =
-      case Validation.validate(url) do
-        {:ok, _} -> true
-        _ -> false
-      end
-    if not test do
-      IO.write bad, "invalid " <> url <> "\n"
-    end
-    test
-  end
-
   def main(_args) do
     bad = File.open!("./output/bad", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
     :stdio
@@ -61,7 +49,6 @@ defmodule Main do
     |> Stream.map(&split(&1))
     |> Stream.filter(&clean(&1, bad))
     |> Stream.map(&construct(&1))
-    |> Stream.filter(&validate(&1, bad))
     |> Nile.pmap(&Pool.request(&1), concurrency: 100000, timeout: 60_000)
     |> Stream.run
   end
