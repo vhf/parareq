@@ -5,4 +5,5 @@
   "metrics": {:hex, :metrics, "1.0.1"},
   "mimerl": {:hex, :mimerl, "1.0.2"},
   "parallel_stream": {:hex, :parallel_stream, "1.0.3"},
+  "poolboy": {:hex, :poolboy, "1.5.1"},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.0"}}

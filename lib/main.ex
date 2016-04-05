@@ -1,35 +1,35 @@
-defmodule Head do
+defmodule Main do
   @headers [:host, :path_or_url]
 
   def split(line) do
-    line |> String.split("\t")
+    String.strip(line) |> String.split("\t")
   end
 
   def clean(line) do
-    2 == length(line)
+    last = List.last(line)
+    2 == length(line) and
+    not ((not String.starts_with?(last, "http://") or not String.starts_with?(last, "https://")) and String.contains?(last, "://"))
   end
 
   def construct(line) do
     xs = Enum.zip(@headers, line)
     cond do
+      String.starts_with?(xs[:path_or_url], "//") ->
+        "http:" <> xs[:path_or_url]
       String.starts_with?(xs[:path_or_url], "http") ->
         xs[:path_or_url]
+      String.starts_with?(xs[:path_or_url], "/") ->
+        xs[:path_or_url]
       true ->
-        "http://" <> xs[:host] <> xs[:path_or_url]
+        "http://" <> xs[:host] <> "/" <> xs[:path_or_url]
     end
   end
 
-  defp dispatch(url) do
-    case HTTPoison.head(url) do
-     {:ok, response} -> success(url, response)
-     {:error, reason} -> {:error, [url: url, reason: reason]}
+  def validate(url) do
+    case Validation.validate(url) do
+      {:ok, _} -> true
+      _ -> false
     end
-  end
-
-  defp success(url, response) do
-    content_type = :proplists.get_value("Content-Type", response.headers())
-    status_code = response.status_code
-    {:ok, [url: url, content_type: content_type, status_code: status_code]}
   end
 
   defp results(result, done, fail, good) do
@@ -47,11 +47,11 @@ defmodule Head do
     fail = File.open!("./output/fail", [:read, :write, :read_ahead, :append, :delayed_write])
     good = File.open!("./output/good", [:read, :write, :read_ahead, :append, :delayed_write])
     IO.stream(:stdio, :line)
-    |> Stream.map(&String.strip/1)
     |> Stream.map(&split(&1))
     |> Stream.filter(&clean(&1))
     |> Stream.map(&construct(&1))
-    |> ParallelStream.map(&dispatch(&1), num_workers: 10000, worker_work_ratio: 1)
+    |> Stream.filter(&validate(&1))
+    |> ParallelStream.map(&Pool.request(&1), num_workers: 10000, worker_work_ratio: 1)
     |> ParallelStream.map(&results(&1, done, fail, good), num_workers: 75, worker_work_ratio: 200)
     |> Stream.run
   end
