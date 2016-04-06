@@ -1,4 +1,4 @@
-defmodule Pool.Requester do
+defmodule ParaReq.Pool.Requester do
   defp success(url, response) do
     content_type = :proplists.get_value("Content-Type", response.headers())
     status_code = response.status_code
@@ -9,10 +9,11 @@ defmodule Pool.Requester do
   end
 
   def head(%{url: url, done: done, fail: fail, good: good}) do
-    req = HTTPoison.head(url, [], [hackney: [follow_redirect: false]])
+    req = HTTPoison.head(url, [], [hackney: [follow_redirect: false, pool: :connection_pool]])
     result =
       case req do
        {:ok, response} -> success(url, response)
+       {:error, %HTTPoison.Error{id: _, reason: {at, msg}}} -> {:error, [url: url, reason: Atom.to_string(at) <> ": " <> List.to_string(msg)]}
        {:error, %HTTPoison.Error{id: _, reason: reason}} -> {:error, [url: url, reason: Atom.to_string(reason)]}
        {:error, reason} -> {:error, [url: url, reason: reason]}
        _ -> {:error, [url: url, reason: "drown"]}

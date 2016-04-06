@@ -1,4 +1,4 @@
-defmodule Head.Mixfile do
+defmodule ParaReq.Mixfile do
   use Mix.Project
 
   def project do
@@ -7,28 +7,26 @@ defmodule Head.Mixfile do
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     escript: [main_module: Main, emu_args: "+P 10000000"],
+     escript: [main_module: ParaReq.App, emu_args: "+P 10000000"],
      deps: deps]
   end
 
   def application do
     [
-      mod: {Pool, []},
-      applications: [:logger, :httpoison, :poolboy],
+      mod: {ParaReq.App, []},
+      applications: [:logger, :httpoison, :poolboy]
     ]
   end
 
   def escript do
-    [main_module: Main]
+    [main_module: ParaReq.App]
   end
 
   defp deps do
     [
       {:httpoison, "~> 0.8.2"},
       {:poolboy, "~> 1.5"},
-      {:dogma, "~> 0.1", only: :dev},
-      {:credo, "~> 0.3", only: [:dev, :test]},
-      {:nile, "~> 0.1.3"}
+      {:blocking_queue, "~> 1.0"}
     ]
   end
 end
