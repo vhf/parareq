@@ -20,11 +20,8 @@ defmodule ParaReq do
     bad = File.open!("./output/bad", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
     {:ok, qid} = BlockingQueue.start_link(100_000)  #ttsize
     File.stream!("./input", [:utf8])
-    |> Stream.map(&CCUtils.split(&1))
-    |> Stream.filter(&CCUtils.clean(&1, bad))
-    |> Stream.map(&CCUtils.construct(&1))
+    |> Stream.map(&CCUtils.preprocess(&1, bad))
     |> BlockingQueue.push_stream(qid)
-    # IO.puts "Queue ready!"
     {:ok, qid}
   end
 end

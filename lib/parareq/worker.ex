@@ -10,32 +10,18 @@ defmodule ParaReq.Pool.Worker do
     {:ok, state}
   end
 
-  def handle_call(arg, from, state) do
-    counter = Map.get(state, :counter)
-    # if counter > 0 do
-    #    IO.puts List.to_string(:erlang.pid_to_list(self)) <> " is looping"
-    # else
-    #   IO.puts List.to_string(:erlang.pid_to_list(self)) <> " is working"
-    # end
+  def handle_call(_arg, _from, %{qid: qid, done: done, fail: fail, good: good}) do
+    url = qid |> BlockingQueue.pop
+    wid = List.to_string(:erlang.pid_to_list(self))
+    IO.write done, wid <> "\t" <> url <> "\n"
 
-    url = state
-    |> Map.get(:qid)
-    |> BlockingQueue.pop
-
-    state
-    |> Map.delete(:qid)
-    |> Map.delete(:counter)
-    |> Map.put(:url, url)
-    |> ParaReq.Pool.Requester.head
-
-    if counter < 25 do
-      :timer.sleep(50)
-      new_state = state
-      |> Map.update(:counter, 0, &(&1 + 1))
-      handle_call(arg, from, new_state)
+    try do
+      %{wid: wid, url: url, fail: fail, good: good} |> ParaReq.Pool.Requester.head
+    catch
+      _,_ -> {:reply, :failed, %{qid: qid, done: done, fail: fail, good: good}}
     end
-    # IO.puts "reached " <> Integer.to_string(counter)
-    {:reply, :im_done, state}
+
+    {:reply, :done, %{qid: qid, done: done, fail: fail, good: good}}
   end
 
   def request(pid, data) do

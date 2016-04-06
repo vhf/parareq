@@ -8,29 +8,28 @@ defmodule ParaReq.Pool.Requester do
     end
   end
 
-  def head(%{url: url, done: done, fail: fail, good: good}) do
+  def head(%{wid: wid, url: url, fail: fail, good: good}) do
     req = HTTPoison.head(url, [], [hackney: [follow_redirect: false, pool: :connection_pool]])
-    result =
-      case req do
-       {:ok, response} -> success(url, response)
-       {:error, %HTTPoison.Error{id: _, reason: {at, msg}}} -> {:error, [url: url, reason: Atom.to_string(at) <> ": " <> List.to_string(msg)]}
-       {:error, %HTTPoison.Error{id: _, reason: reason}} -> {:error, [url: url, reason: Atom.to_string(reason)]}
-       {:error, reason} -> {:error, [url: url, reason: reason]}
-       _ -> {:error, [url: url, reason: "drown"]}
-      end
-    case result do
+    case req do
       nil -> :ok
-      _ -> write_results(result, done, fail, good)
+      _ -> result =
+        case req do
+         {:ok, response} -> success(url, response)
+         {:error, %HTTPoison.Error{id: _, reason: {at, msg}}} -> {:error, [url: url, reason: Atom.to_string(at) <> ": " <> List.to_string(msg)]}
+         {:error, %HTTPoison.Error{id: _, reason: reason}} -> {:error, [url: url, reason: Atom.to_string(reason)]}
+         {:error, reason} -> {:error, [url: url, reason: reason]}
+         _ -> {:error, [url: url, reason: "drown"]}
+        end
+        write_results(wid, result, fail, good)
     end
   end
 
-  defp write_results(result, done, fail, good) do
+  defp write_results(wid, result, fail, good) do
     {kw, data} = result
     case kw do
-     :ok -> IO.write good, "#{data[:status_code]}\t#{data[:url]}\t#{data[:content_type]}\n"
-     :error -> IO.write fail, "#{data[:reason]}\t#{data[:url]}\n"
+     :ok -> IO.write good, "#{wid}\t#{data[:status_code]}\t#{data[:url]}\t#{data[:content_type]}\n"
+     :error -> IO.write fail, "#{wid}\t#{data[:reason]}\t#{data[:url]}\n"
     end
-    IO.write done, "#{data[:url]}\n"
     :ok
   end
 end

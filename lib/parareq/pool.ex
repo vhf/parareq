@@ -12,7 +12,7 @@ defmodule ParaReq.Pool do
     fail = File.open!("./output/fail", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
     good = File.open!("./output/good", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
 
-    state = %{qid: qid, done: done, fail: fail, good: good, counter: 0}
+    state = %{qid: qid, done: done, fail: fail, good: good}
 
     poolboy_config = [
       {:name, {:local, pool_name()}},
@@ -33,28 +33,28 @@ defmodule ParaReq.Pool do
   end
 
   def start do
-    :ok = :hackney_pool.start_pool(:connection_pool, [timeout: 300_000, max_connections: 30_000])
-    Enum.each(1..15_000, fn _ -> #ttsize
+    :ok = :hackney_pool.start_pool(:connection_pool, [mod_metrics: :folsom, timeout: 864_000_000, max_connections: 15_000])
+    Enum.each(1..2_000, fn _ -> #ttsize
       spawn(fn -> dispatch_worker end)
     end)
   end
 
   def replace_worker do
-    # IO.puts List.to_string(:erlang.pid_to_list(self)) <> " new"
+    IO.puts List.to_string(:erlang.pid_to_list(self)) <> " requeued"
     spawn(fn -> dispatch_worker end)
   end
 
   def dispatch_worker do
     try do
-      IO.inspect :poolboy.transaction(
+      :poolboy.transaction(
         pool_name(),
         fn(pid) -> ParaReq.Pool.Worker.request(pid, []) end,
-        120_000 # timeout in ms
+        15_000 # timeout in ms
       )
     rescue
-      x -> nil # replace_worker
+      _ -> nil # replace_worker
     catch
-      x, y -> nil# replace_worker
+      _, _ -> nil# replace_worker
     end
     replace_worker
   end

@@ -1,28 +1,25 @@
 defmodule CCUtils do
    @headers [:host, :path_or_url]
 
-  def split(line) do
-    line
+  def preprocess(line, bad) do
+    splat = line
     |> String.strip
     |> String.replace("&amp;", "&")
     |> String.split("\t")
     |> Enum.map(&String.strip/1)
-  end
 
-  def clean(line, bad) do
-    test =
-      cond do
-        2 != length(line) -> false
-        true -> true
-      end
-
-    if not test do
-      IO.write bad, "unclean " <> List.to_string(line) <> "\n"
+    cond do
+      2 != length(splat)
+        -> IO.write bad, "toomanycols " <> List.to_string(splat) <> "\n"
+      splat |> List.last |> String.contains?("app://")
+        -> IO.write bad, "app:// " <> List.to_string(splat) <> "\n"
+      true
+        -> construct(splat)
     end
-    test
   end
 
-  def construct(line) do
+
+  defp construct(line) do
     xs = Enum.zip(@headers, line)
     url =
       cond do
