@@ -10,18 +10,18 @@ defmodule ParaReq.Pool.Worker do
     {:ok, state}
   end
 
-  def handle_call(_arg, _from, %{qid: qid, done: done, fail: fail, good: good}) do
-    url = qid |> BlockingQueue.pop
-    wid = List.to_string(:erlang.pid_to_list(self))
-    IO.write done, wid <> "\t" <> url <> "\n"
+  def handle_call(_arg, _from, %{}) do
+    url = :queue |> BlockingQueue.pop
 
     try do
-      %{wid: wid, url: url, fail: fail, good: good} |> ParaReq.Pool.Requester.head
+      %{url: url} |> ParaReq.Pool.Requester.head
     catch
-      _,_ -> {:reply, :failed, %{qid: qid, done: done, fail: fail, good: good}}
+      _,_ ->
+        send :request_listener, {:exception, url}
+        {:reply, :failed, %{}}
     end
 
-    {:reply, :done, %{qid: qid, done: done, fail: fail, good: good}}
+    {:reply, :done, %{}}
   end
 
   def request(pid, data) do

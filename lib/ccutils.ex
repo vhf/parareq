@@ -1,7 +1,7 @@
 defmodule CCUtils do
    @headers [:host, :path_or_url]
 
-  def preprocess(line, bad) do
+  def preprocess(line, excluded) do
     splat = line
     |> String.strip
     |> String.replace("&amp;", "&")
@@ -9,15 +9,25 @@ defmodule CCUtils do
     |> Enum.map(&String.strip/1)
 
     cond do
-      2 != length(splat)
-        -> IO.write bad, "toomanycols " <> List.to_string(splat) <> "\n"
-      splat |> List.last |> String.contains?("app://")
-        -> IO.write bad, "app:// " <> List.to_string(splat) <> "\n"
-      true
-        -> construct(splat)
+      2 != length(splat) ->
+        IO.write excluded, "toomanycols " <> List.to_string(splat) <> "\n"
+        :excluded
+      splat |> List.last |> String.contains?("app://") ->
+        IO.write excluded, "app:// " <> List.to_string(splat) <> "\n"
+        :excluded
+      true ->
+        construct(splat)
     end
   end
 
+  def filter(arg) do
+    cond do
+      is_bitstring(arg) ->
+        true
+      true ->
+        false
+    end
+  end
 
   defp construct(line) do
     xs = Enum.zip(@headers, line)

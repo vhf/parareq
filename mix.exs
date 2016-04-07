@@ -26,6 +26,7 @@ defmodule ParaReq.Mixfile do
     [
       {:httpoison, "~> 0.8.2"},
       {:poolboy, "~> 1.5"},
+      {:mem, "~> 0.2.0"},
       {:blocking_queue, "~> 1.0"}
     ]
   end

@@ -1,28 +1,29 @@
 defmodule ParaReq.Pool do
-  def start_link(qid) do
-    GenServer.start_link(__MODULE__, qid)
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args)
   end
 
   defp pool_name() do
     :worker_pool
   end
 
-  def init(qid) do
-    done = File.open!("./output/done", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
-    fail = File.open!("./output/fail", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
-    good = File.open!("./output/good", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
+  def init(args) do
+    pid = spawn(fn -> ParaReq.ResultServer.request_listener end)
+    Process.register(pid, :request_listener)
+    pid = spawn(fn -> ParaReq.ResultServer.result_listener end)
+    Process.register(pid, :result_listener)
 
-    state = %{qid: qid, done: done, fail: fail, good: good}
+    worker_state = %{}
 
     poolboy_config = [
       {:name, {:local, pool_name()}},
       {:worker_module, ParaReq.Pool.Worker},
       {:size, 0},
-      {:max_overflow, 30_000} #ttsize
+      {:max_overflow, 50_000} # var
     ]
 
     children = [
-      :poolboy.child_spec(pool_name(), poolboy_config, state)
+      :poolboy.child_spec(pool_name(), poolboy_config, worker_state)
     ]
 
     options = [
@@ -33,14 +34,19 @@ defmodule ParaReq.Pool do
   end
 
   def start do
-    :ok = :hackney_pool.start_pool(:connection_pool, [mod_metrics: :folsom, timeout: 864_000_000, max_connections: 15_000])
-    Enum.each(1..2_000, fn _ -> #ttsize
-      spawn(fn -> dispatch_worker end)
+    :ok = :hackney_pool.start_pool(:connection_pool, [
+      timeout: 864_000_000, # var
+      max_connections: 25_000 # var
+    ])
+    Enum.each(1..10_000, fn _ -> # var
+      spawn(fn ->
+        dispatch_worker
+      end)
     end)
   end
 
   def replace_worker do
-    IO.puts List.to_string(:erlang.pid_to_list(self)) <> " requeued"
+    # IO.puts List.to_string(:erlang.pid_to_list(self)) <> " requeued"
     spawn(fn -> dispatch_worker end)
   end
 
@@ -49,7 +55,7 @@ defmodule ParaReq.Pool do
       :poolboy.transaction(
         pool_name(),
         fn(pid) -> ParaReq.Pool.Worker.request(pid, []) end,
-        15_000 # timeout in ms
+        100 # var timeout in ms
       )
     rescue
       _ -> nil # replace_worker

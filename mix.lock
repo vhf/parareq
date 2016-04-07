@@ -3,6 +3,7 @@
   "hackney": {:hex, :hackney, "1.5.7"},
   "httpoison": {:hex, :httpoison, "0.8.2"},
   "idna": {:hex, :idna, "1.2.0"},
+  "mem": {:hex, :mem, "0.2.0"},
   "metrics": {:hex, :metrics, "1.0.1"},
   "mimerl": {:hex, :mimerl, "1.0.2"},
   "poolboy": {:hex, :poolboy, "1.5.1"},
