@@ -14,8 +14,6 @@ defmodule ParaReq do
     pid = spawn(fn -> ParaReq.ResultListener.start end)
     Process.register(pid, :result_listener)
 
-    spawn(fn -> watch end)
-
     children = [
       Cache.child_spec,
       worker(ParaReq.Pool, ["args"])
@@ -33,15 +31,5 @@ defmodule ParaReq do
     |> Stream.filter(&CCUtils.filter(&1))
     |> BlockingQueue.push_stream(pid)
     pid
-  end
-
-  def watch do
-    sec = File.open!("./output/0_sec", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
-    for _ <- Stream.cycle([:ok]) do
-      n = Cache.check(:op_res)
-      IO.write sec, Integer.to_string(n)
-      IO.puts n
-      :timer.sleep(1_000)
-    end
   end
 end

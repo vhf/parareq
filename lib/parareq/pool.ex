@@ -33,15 +33,12 @@ defmodule ParaReq.Pool do
       timeout: 120_000, # var
       max_connections: 25_000 # var
     ])
+    spawn(fn -> watch end)
     Enum.each(1..5_000, fn _ -> # var
       spawn(fn ->
         dispatch_worker
       end)
     end)
-  end
-
-  def replace_worker do
-    spawn(fn -> dispatch_worker end)
   end
 
   def dispatch_worker do
@@ -56,6 +53,16 @@ defmodule ParaReq.Pool do
     catch
       _, _ -> nil# replace_worker
     end
-    replace_worker
+    dispatch_worker
+  end
+
+  def watch do
+    sec = File.open!("./output/0_sec", [:utf8, :read, :write, :read_ahead, :append])
+    for _ <- Stream.cycle([:ok]) do
+      n = Cache.check(:op_res)
+      IO.write sec, Integer.to_string(n) <> "\n"
+      IO.puts n
+      :timer.sleep(1_000)
+    end
   end
 end
