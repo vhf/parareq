@@ -37,7 +37,6 @@ defmodule ParaReq do
 
   def watch do
     for _ <- Stream.cycle([:ok]) do
-      IO.inspect :erlang.localtime
       send :result_listener, {:op}
       :timer.sleep(1000)
     end

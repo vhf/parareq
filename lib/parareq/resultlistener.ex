@@ -31,8 +31,8 @@ defmodule ParaReq.ResultListener do
           IO.write exception, "exception\t#{url}\n"
 
         {:op} ->
-          IO.puts Integer.to_string(Cache.check(:op_req)) <> " requests received"
-          IO.puts Integer.to_string(Cache.check(:op_res)) <> " results received"
+          IO.inspect IO.inspect :erlang.localtime
+          IO.puts Integer.to_string(Cache.check(:op_req)) <> " req " <> Integer.to_string(Cache.check(:op_res)) <> " res"
       end
     end
   end
