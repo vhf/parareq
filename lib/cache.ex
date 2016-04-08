@@ -13,7 +13,17 @@ defmodule Cache do
       {:err, _} ->
         Cache.set(key, Map.new |> Map.put(k, v))
       {:ok, map} ->
-        Cache.set(key, map |> Map.update(k, v, fn(old) -> v end))
+        Cache.set(key, map |> Map.update(k, v, fn _ -> v end))
+    end
+  end
+
+  def check(key) do
+    state = Cache.get(key)
+    case state do
+      {:err, _} ->
+        0
+      {:ok, n} ->
+        n
     end
   end
 end

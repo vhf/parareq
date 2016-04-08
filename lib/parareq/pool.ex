@@ -8,11 +8,6 @@ defmodule ParaReq.Pool do
   end
 
   def init(args) do
-    pid = spawn(fn -> ParaReq.RequestListener.start end)
-    Process.register(pid, :request_listener)
-    pid = spawn(fn -> ParaReq.ResultListener.start end)
-    Process.register(pid, :result_listener)
-
     worker_state = %{}
 
     poolboy_config = [

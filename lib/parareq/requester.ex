@@ -1,5 +1,5 @@
 defmodule ParaReq.Pool.Requester do
-  @headers [ {"User-Agent", "Googlebot/2.1"} ]
+  @headers [{"User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2700.0 Safari/537.36"}]
 
   def head(%{url: url}) do
     # req = HTTPoison.head(url, @headers, [stream_to: :request_listener, hackney: [follow_redirect: false, pool: :connection_pool]])
