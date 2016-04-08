@@ -13,6 +13,7 @@ defmodule ParaReq do
     Process.register(pid, :result_listener)
 
     children = [
+      Cache.child_spec,
       worker(ParaReq.Pool, ["args"])
     ]
     opts = [strategy: :one_for_one, name: ParaReq.Supervisor]
@@ -22,7 +23,7 @@ defmodule ParaReq do
 
   def stream do
     excluded = File.open!("./output/0_excluded", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
-    {:ok, pid} = BlockingQueue.start_link(25_000)  #ttsize
+    {:ok, pid} = BlockingQueue.start_link(100_000)  #ttsize
     File.stream!("./input", [:utf8])
     |> Stream.map(&CCUtils.preprocess(&1, excluded))
     |> Stream.filter(&CCUtils.filter(&1))

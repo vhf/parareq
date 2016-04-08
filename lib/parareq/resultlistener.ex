@@ -7,13 +7,13 @@ defmodule ParaReq.ResultListener do
 
     for _ <- Stream.cycle([:ok]) do
       receive do
-        {:tried, %{url: url}} ->
-          IO.write tried, url <> "\n"
+        {:tried, %{n: n, url: url}} ->
+          IO.write tried, "#{n}\t#{url}\n"
 
-        {:done, {:ok, %{url: url, content_type: content_type, code: code}}} ->
-          IO.write good, "#{code}\t#{url}\t#{content_type}\n"
+        {:done, %{n: n, url: url, content_type: content_type, code: code}} ->
+          IO.write good, "#{n}\t#{code}\t#{url}\t#{content_type}\n"
 
-        {:error, %{url: url, reason: reason}} ->
+        {:error, %{n: n, url: url, reason: reason}} ->
           if reason == "connect_timeout" do
             Cache.inc(:to)
             inc = Cache.check(:to)
@@ -21,10 +21,10 @@ defmodule ParaReq.ResultListener do
               IO.puts Integer.to_string(inc) <> " timeouts"
             end
           end
-          IO.write error, "#{reason}\t#{url}\n"
+          IO.write error, "#{n}\t#{reason}\t#{url}\n"
 
-        {:exception, %{url: url}} ->
-          IO.write exception, "exception\t#{url}\n"
+        {:exception, %{n: n, url: url}} ->
+          IO.write exception, "#{n}\texception\t#{url}\n"
       end
     end
   end

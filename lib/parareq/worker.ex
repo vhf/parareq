@@ -6,20 +6,13 @@ defmodule ParaReq.Pool.Worker do
   end
 
   def init(state) do
-    IO.puts List.to_string(:erlang.pid_to_list(self)) <> " starting"
     {:ok, state}
   end
 
   def handle_call(%{n: n}, _from, data) do
     url = :queue |> BlockingQueue.pop
-    IO.puts List.to_string(:erlang.pid_to_list(self)) <> " handling " <> Integer.to_string(n)
-    try do
-      ret = %{url: url} |> ParaReq.Pool.Requester.head
-    catch
-      _,_ ->
-        send :request_listener, {:exception, url}
-        {:reply, :failed, data}
-    end
+
+    %{url: url, n: n} |> ParaReq.Pool.Requester.head
 
     {:reply, :done, data}
   end
