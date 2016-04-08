@@ -8,9 +8,9 @@ defmodule ParaReq.Pool do
   end
 
   def init(args) do
-    pid = spawn(fn -> ParaReq.ResultServer.request_listener end)
+    pid = spawn(fn -> ParaReq.RequestListener.start end)
     Process.register(pid, :request_listener)
-    pid = spawn(fn -> ParaReq.ResultServer.result_listener end)
+    pid = spawn(fn -> ParaReq.ResultListener.start end)
     Process.register(pid, :result_listener)
 
     worker_state = %{}
@@ -34,10 +34,10 @@ defmodule ParaReq.Pool do
   end
 
   def start do
-    :ok = :hackney_pool.start_pool(:connection_pool, [
-      timeout: 864_000_000, # var
-      max_connections: 25_000 # var
-    ])
+    # :ok = :hackney_pool.start_pool(:connection_pool, [
+    #   timeout: 120_000, # var
+    #   max_connections: 40_000 # var
+    # ])
     Enum.each(1..10_000, fn _ -> # var
       spawn(fn ->
         dispatch_worker
@@ -46,7 +46,6 @@ defmodule ParaReq.Pool do
   end
 
   def replace_worker do
-    # IO.puts List.to_string(:erlang.pid_to_list(self)) <> " requeued"
     spawn(fn -> dispatch_worker end)
   end
 
@@ -55,7 +54,7 @@ defmodule ParaReq.Pool do
       :poolboy.transaction(
         pool_name(),
         fn(pid) -> ParaReq.Pool.Worker.request(pid, []) end,
-        100 # var timeout in ms
+        1_000 # var timeout in ms
       )
     rescue
       _ -> nil # replace_worker

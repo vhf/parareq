@@ -1,6 +1,9 @@
 defmodule ParaReq.Pool.Requester do
+  @headers [ {"User-Agent", "Googlebot/2.1"} ]
+
   def head(%{url: url}) do
-    req = HTTPoison.head(url, [], [stream_to: :request_listener, hackney: [follow_redirect: false, pool: :connection_pool]])
+    # req = HTTPoison.head(url, @headers, [stream_to: :request_listener, hackney: [follow_redirect: false, pool: :connection_pool]])
+    req = HTTPoison.head(url, @headers, [stream_to: :request_listener, hackney: [follow_redirect: false]])
     send :result_listener, {:tried, %{url: url}}
     case req do
       {:ok, %HTTPoison.AsyncResponse{id: reference}} ->
