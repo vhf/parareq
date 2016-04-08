@@ -27,7 +27,7 @@ defmodule ParaReq do
 
   def stream do
     excluded = File.open!("./output/0_excluded", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
-    {:ok, pid} = BlockingQueue.start_link(100_000)  #ttsize
+    {:ok, pid} = BlockingQueue.start_link(25_000)  #ttsize
     File.stream!("./input", [:utf8])
     |> Stream.map(&CCUtils.preprocess(&1, excluded))
     |> Stream.filter(&CCUtils.filter(&1))
@@ -36,9 +36,12 @@ defmodule ParaReq do
   end
 
   def watch do
+    sec = File.open!("./output/0_sec", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
     for _ <- Stream.cycle([:ok]) do
-      send :result_listener, {:op}
-      :timer.sleep(1000)
+      n = Cache.check(:op_res)
+      IO.write sec, Integer.to_string(n)
+      IO.puts n
+      :timer.sleep(1_000)
     end
   end
 end

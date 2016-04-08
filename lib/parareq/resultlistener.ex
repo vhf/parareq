@@ -8,7 +8,6 @@ defmodule ParaReq.ResultListener do
     for _ <- Stream.cycle([:ok]) do
       receive do
         {:tried, %{url: url}} ->
-          Cache.inc(:op_res)
           IO.write tried, url <> "\n"
 
         {:done, {:ok, %{url: url, content_type: content_type, code: code}}} ->
@@ -29,10 +28,6 @@ defmodule ParaReq.ResultListener do
         {:exception, %{url: url}} ->
           Cache.inc(:op_res)
           IO.write exception, "exception\t#{url}\n"
-
-        {:op} ->
-          IO.inspect IO.inspect :erlang.localtime
-          IO.puts Integer.to_string(Cache.check(:op_req)) <> " req " <> Integer.to_string(Cache.check(:op_res)) <> " res"
       end
     end
   end

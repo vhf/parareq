@@ -14,7 +14,7 @@ defmodule ParaReq.Pool do
       {:name, {:local, pool_name()}},
       {:worker_module, ParaReq.Pool.Worker},
       {:size, 0},
-      {:max_overflow, 50_000} # var
+      {:max_overflow, 25_000} # var
     ]
 
     children = [
@@ -31,9 +31,9 @@ defmodule ParaReq.Pool do
   def start do
     :ok = :hackney_pool.start_pool(:connection_pool, [
       timeout: 120_000, # var
-      max_connections: 50_000 # var
+      max_connections: 25_000 # var
     ])
-    Enum.each(1..20_000, fn _ -> # var
+    Enum.each(1..5_000, fn _ -> # var
       spawn(fn ->
         dispatch_worker
       end)
