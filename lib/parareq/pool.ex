@@ -29,10 +29,10 @@ defmodule ParaReq.Pool do
   end
 
   def start do
-    # :ok = :hackney_pool.start_pool(:connection_pool, [
-    #   timeout: 120_000, # var
-    #   max_connections: 40_000 # var
-    # ])
+    :ok = :hackney_pool.start_pool(:connection_pool, [
+      timeout: 120_000, # var
+      max_connections: 45000 # var
+    ])
     Enum.each(1..10_000, fn _ -> # var
       spawn(fn ->
         dispatch_worker

@@ -38,9 +38,6 @@ defmodule ParaReq.RequestListener do
         {:exception, %{url: url}} ->
           Cache.inc(:op_req)
           send :result_listener, {:exception, %{url: url}}
-
-        {:op} ->
-          IO.puts Integer.to_string(Cache.check(:op_req)) <> " results received"
       end
     end
   end
