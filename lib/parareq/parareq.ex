@@ -9,13 +9,10 @@ defmodule ParaReq do
     import Supervisor.Spec
     pid = stream
     Process.register(pid, :queue)
-    pid = spawn(fn -> ParaReq.RequestListener.start end)
-    Process.register(pid, :request_listener)
     pid = spawn(fn -> ParaReq.ResultListener.start end)
     Process.register(pid, :result_listener)
 
     children = [
-      Cache.child_spec,
       worker(ParaReq.Pool, ["args"])
     ]
     opts = [strategy: :one_for_one, name: ParaReq.Supervisor]
