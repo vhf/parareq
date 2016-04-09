@@ -35,7 +35,7 @@ defmodule ParaReq.Pool do
     Process.register(spawn(fn -> repeater end), :repeater)
     :ok = :hackney_pool.start_pool(:connection_pool, [
       timeout: 120_000,
-      max_connections: round(@concurrency*1.25)
+      max_connections: round(@concurrency*1.1)
     ])
     :observer.start
     Enum.each(1..@concurrency, fn n ->

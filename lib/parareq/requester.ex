@@ -1,5 +1,7 @@
 defmodule ParaReq.Pool.Requester do
   @headers [{"User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2700.0 Safari/537.36"}]
+  @conn_timeout 2_500
+  @recv_timeout 2_500
 
   def head(%{n: n, url: url}) do
     send :result_listener, {:tried, %{n: n, url: url}}
@@ -7,8 +9,8 @@ defmodule ParaReq.Pool.Requester do
       try do
         url
         |> HTTPoison.head(@headers, [
-          timeout: 14_000,
-          recv_timeout: 14_000,
+          timeout: @conn_timeout,
+          recv_timeout: @recv_timeout,
           hackney: [follow_redirect: false, pool: :connection_pool]
         ])
       rescue
@@ -18,8 +20,8 @@ defmodule ParaReq.Pool.Requester do
               url
               |> String.replace("http://", "https://")
               |> HTTPoison.head(@headers, [
-                timeout: 14_000,
-                recv_timeout: 14_000,
+                timeout: @conn_timeout,
+                recv_timeout: @recv_timeout,
                 hackney: [follow_redirect: false, pool: :connection_pool]
               ])
           end
