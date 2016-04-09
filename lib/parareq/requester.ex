@@ -42,7 +42,7 @@ defmodule ParaReq.Pool.Requester do
         send :result_listener, {:error, %{n: n, url: url, reason: Atom.to_string(reason)}}
       {:error, reason} when is_bitstring(reason) ->
         send :result_listener, {:error, %{n: n, url: url, reason: reason}}
-      {:error, reason} ->
+      {:error, _} ->
         send :result_listener, {:error, %{n: n, url: url, reason: "unmatched reason"}}
       _ ->
         send :result_listener, {:exception, %{n: n, url: url}}
