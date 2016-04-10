@@ -12,7 +12,6 @@ defmodule ParaReq.Pool.Worker do
   def handle_call(%{n: n}, _from, data) do
     url = :queue |> BlockingQueue.pop
     %{url: url, n: n} |> ParaReq.Pool.Requester.head
-    Cache.inc(:reqs_done)
     {:reply, :done, data}
   end
 
