@@ -21,7 +21,7 @@ echo
 echo $s200 "HTTP200"
 echo $s200xml "HTTP200 + XML"
 echo $s200xmlu "HTTP200 + XML | unique"
-
+echo
 ss -s
 
 ./4_usage.sh
