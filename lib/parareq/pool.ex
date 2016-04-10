@@ -41,6 +41,7 @@ defmodule ParaReq.Pool do
     Enum.each(1..@concurrency, fn n ->
       spawn(fn ->
         dispatch_worker n
+        :timer.sleep(100)
       end)
     end)
   end
