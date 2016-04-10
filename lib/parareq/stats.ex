@@ -7,6 +7,9 @@ defmodule ParaReq.Pool.Stats do
     for _ <- Stream.cycle([:ok]) do
       :timer.sleep(@freq * 1_000)
       done = round(Cache.check(:reqs_done) / @freq)
+      if done == 0 do
+        done = 1
+      end
       Cache.set(:reqs_done, 0)
       alive = Cache.check(:reqs_alive)
       rel_timeouts = round(((Cache.check(:timeout) / @freq / done) * 10000)) / 100
