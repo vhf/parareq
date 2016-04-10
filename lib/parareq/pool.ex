@@ -14,21 +14,24 @@ defmodule ParaReq.Pool do
       {:name, {:local, pool_name()}},
       {:worker_module, ParaReq.Pool.Worker},
       {:size, concurrency},
-      {:max_overflow, round(concurrency*0.25)}
+      {:max_overflow, 0}
     ]
 
     children = [
-      # :hackney_pool.child_spec(:connection_pool, [
-      #   timeout: 2_500,
-      #   max_connections: round(@concurrency*10)
-      # ]),
       :poolboy.child_spec(pool_name(), poolboy_config, worker_state)
     ]
 
+    :application.set_env(:hackney, :max_connections, 50_000)
+    :application.set_env(:hackney, :timeout, 500)
+
+    IO.inspect Application.get_all_env(:hackney)
     options = [
       strategy: :one_for_one,
+      intensity: 10,
+      period: 1,
       name: ParaReq.Pool
     ]
+
     Supervisor.start_link(children, options)
   end
 
@@ -38,6 +41,7 @@ defmodule ParaReq.Pool do
       spawn(fn ->
         dispatch_worker n
       end)
+      :timer.sleep(9)
     end)
   end
 
@@ -53,6 +57,5 @@ defmodule ParaReq.Pool do
     catch
       _, _ -> nil # same
     end
-    dispatch_worker(n)
   end
 end

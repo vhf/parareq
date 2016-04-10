@@ -1,6 +1,6 @@
 defmodule Cache do
   use Mem,
-    worker_number:      10,    # (optional, default: 2) how many processes in worker pool
+    worker_number:      100,    # (optional, default: 2) how many processes in worker pool
     default_ttl:        60_000,     # (optional, default: nil) default seconds for set/2
 
     maxmemory_size:     "2GB", # (optional, default: nil) max memory used, support such format: [1000, "10k", "1GB", "1000 K"]

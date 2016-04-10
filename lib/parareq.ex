@@ -1,7 +1,7 @@
 defmodule ParaReq do
   use Supervisor
 
-  @concurrency 50
+  @concurrency 1_000
 
   def init([state]) do
     {:ok, state}
@@ -21,8 +21,13 @@ defmodule ParaReq do
       Cache.child_spec,
       worker(ParaReq.Pool, [@concurrency])
     ]
-    opts = [strategy: :one_for_one, name: ParaReq.Supervisor]
-    ret = Supervisor.start_link(children, opts)
+    options = [
+      strategy: :one_for_one,
+      intensity: 10,
+      period: 1,
+      name: ParaReq.Supervisor
+    ]
+    ret = Supervisor.start_link(children, options)
 
     # start pooling requests
     ParaReq.Pool.start(@concurrency)
@@ -31,7 +36,7 @@ defmodule ParaReq do
 
   def stream do
     excluded = File.open!("./output/0_excluded", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
-    {:ok, pid} = BlockingQueue.start_link(round(@concurrency*2))
+    {:ok, pid} = BlockingQueue.start_link(round(@concurrency*20))
     File.stream!("./input", [:utf8])
     |> Stream.map(&CCUtils.preprocess(&1, excluded))
     |> Stream.filter(&CCUtils.filter(&1))

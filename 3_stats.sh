@@ -25,4 +25,4 @@ echo $s200xmlu "HTTP200 + XML | unique"
 echo
 ss -s
 
-./4_usage.sh
+sudo lsof -c beam.smp | grep ESTABLISHED | cut -d'P' -f3 | cut -d'-' -f1 | sed 's/ localhost://' | uniq | wc -l
