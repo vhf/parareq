@@ -15,11 +15,7 @@ defmodule ParaReq.ResultListener do
 
         {:error, %{n: n, url: url, reason: reason}} ->
           if reason == "connect_timeout" do
-            Cache.inc(:to)
-            inc = Cache.check(:to)
-            if rem(inc, 250) == 0 do
-              IO.puts Integer.to_string(inc) <> " timeouts"
-            end
+            Cache.inc(:timeout)
           end
           IO.write error, "#{n}\t#{reason}\t#{url}\n"
 

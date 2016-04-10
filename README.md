@@ -16,7 +16,7 @@ In order to generate a suitable input file and to answer your own HTTP requests 
 
 ### Scripts
 
-* `0_run.sh` runs ParaReq on `./input`. Every 5s, ParaReq logs to its console the average requests per second over the last 5s and the current number of open HTTP requests.
+* `0_run.sh` runs ParaReq on `./input`. Every 5s, ParaReq logs to its console the average requests per second over the last 5s, the number of currently open HTTP requests and the %age of timeouts.
 * `1_rps.sh` must be run as root, it watches the number of requests per second.
 * `2_out.sh` resets the output files and watches the output directory, logging the number of results per second over 10s.
 * `3_stats.sh` shows various stats such as request results, open connections, unused ports.

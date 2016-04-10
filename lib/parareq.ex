@@ -1,7 +1,7 @@
 defmodule ParaReq do
   use Supervisor
 
-  @concurrency 20
+  @concurrency 50
 
   def init([state]) do
     {:ok, state}
@@ -19,12 +19,12 @@ defmodule ParaReq do
 
     # start the hackney pool
     :application.set_env(:hackney, :use_default_pool, false)
-    :hackney_pool.start_pool(:connection_pool, [
-      timeout: 5_000,
-      max_connections: @concurrency
-    ])
 
     children = [
+      :hackney_pool.child_spec(:connection_pool, [
+        timeout: 2_500,
+        max_connections: round(@concurrency*10)
+      ]),
       Cache.child_spec,
       worker(ParaReq.Pool, [@concurrency])
     ]
