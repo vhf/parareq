@@ -17,14 +17,7 @@ defmodule ParaReq do
     pid = spawn(fn -> ParaReq.ResultListener.start end)
     Process.register(pid, :result_listener)
 
-    # start the hackney pool
-    :application.set_env(:hackney, :use_default_pool, false)
-
     children = [
-      :hackney_pool.child_spec(:connection_pool, [
-        timeout: 2_500,
-        max_connections: round(@concurrency*10)
-      ]),
       Cache.child_spec,
       worker(ParaReq.Pool, [@concurrency])
     ]

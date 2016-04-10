@@ -14,10 +14,14 @@ defmodule ParaReq.Pool do
       {:name, {:local, pool_name()}},
       {:worker_module, ParaReq.Pool.Worker},
       {:size, concurrency},
-      {:max_overflow, 0}
+      {:max_overflow, round(concurrency*0.25)}
     ]
 
     children = [
+      # :hackney_pool.child_spec(:connection_pool, [
+      #   timeout: 2_500,
+      #   max_connections: round(@concurrency*10)
+      # ]),
       :poolboy.child_spec(pool_name(), poolboy_config, worker_state)
     ]
 
