@@ -37,7 +37,7 @@ defmodule ParaReq.Pool do
       timeout: 120_000,
       max_connections: round(@concurrency*1.1)
     ])
-    :observer.start
+    spawn(fn -> ParaReq.Pool.Stats.watch end)
     Enum.each(1..@concurrency, fn n ->
       spawn(fn ->
         dispatch_worker n
@@ -55,6 +55,8 @@ defmodule ParaReq.Pool do
   end
 
   def dispatch_worker(n) do
+    Cache.inc(:reqs_done)
+    Cache.inc(:reqs_alive)
     try do
       :poolboy.transaction(
         pool_name(),
@@ -66,6 +68,7 @@ defmodule ParaReq.Pool do
     catch
       _, _ -> nil # same
     end
+    Cache.inc(:reqs_alive, -1)
     send :repeater, {:next, n}
   end
 end

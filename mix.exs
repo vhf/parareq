@@ -14,7 +14,7 @@ defmodule ParaReq.Mixfile do
   def application do
     [
       mod: {ParaReq.App, []},
-      applications: [:logger, :httpoison, :poolboy]
+      applications: [:logger, :httpoison, :poolboy, :timex]
     ]
   end
 
@@ -27,6 +27,7 @@ defmodule ParaReq.Mixfile do
       {:httpoison, "~> 0.8.2"},
       {:poolboy, "~> 1.5"},
       {:mem, "~> 0.2.0"},
+      {:timex, "~> 2.1.4"},
       {:blocking_queue, "~> 1.0"}
     ]
   end
