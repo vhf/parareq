@@ -5,6 +5,7 @@ defmodule ParaReq.Pool.Requester do
 
   def head(%{n: n, url: url}) do
     send :result_listener, {:tried, %{n: n, url: url}}
+    Cache.inc(:reqs_alive)
     req =
       try do
         url
@@ -26,7 +27,7 @@ defmodule ParaReq.Pool.Requester do
               ])
           end
       end
-
+    Cache.inc(:reqs_alive, -1)
     case req do
       {:ok, %HTTPoison.Response{headers: headers, status_code: code}} ->
         if (content_type = :proplists.get_value("Content-Type", headers)) == :undefined do

@@ -25,6 +25,10 @@ defmodule ParaReq.ResultListener do
 
         {:exception, %{n: n, url: url}} ->
           IO.write exception, "#{n}\texception\t#{url}\n"
+
+        after
+          100 ->
+            :ok
       end
     end
   end

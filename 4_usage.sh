@@ -1,5 +1,5 @@
 #!/bin/bash
-AWK=/usr/bin/nawk
+AWK=/usr/bin/awk
 
 n=`netstat -an | $AWK -v start=1 -v end=65535 ' $NF ~ /TIME_WAIT|ESTABLISHED/ && $4 !~ /127\.0\.0\.1/ {
     if ($1 ~ /\./)

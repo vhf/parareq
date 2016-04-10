@@ -7,19 +7,14 @@ defmodule ParaReq.Mixfile do
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     escript: [main_module: ParaReq.App, emu_args: "+P 10000000"],
      deps: deps]
   end
 
   def application do
     [
-      mod: {ParaReq.App, []},
+      mod: {ParaReq, []},
       applications: [:logger, :httpoison, :poolboy, :timex]
     ]
-  end
-
-  def escript do
-    [main_module: ParaReq.App]
   end
 
   defp deps do
