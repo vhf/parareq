@@ -12,7 +12,7 @@ defmodule ParaReq.Pool.Worker do
     {:ok, state}
   end
 
-  def handle_call(%{n: n}, from, _data) do
+  def handle_call(%{n: n}, _from, _data) do
     url = BlockingQueue.pop :queue
     send :result_listener, {:tried, %{n: n, url: url}}
     Cache.inc(:reqs_alive)
