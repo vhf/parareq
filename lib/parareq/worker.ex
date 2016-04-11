@@ -59,7 +59,6 @@ defmodule ParaReq.Pool.Worker do
     end
     Cache.inc(:reqs_alive, -1)
     Cache.inc(:reqs_done)
-    #handle_call(%{n: n}, from, nil)
     {:reply, :done, nil}
   end
 

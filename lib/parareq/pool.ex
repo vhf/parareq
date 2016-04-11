@@ -3,18 +3,14 @@ defmodule ParaReq.Pool do
     GenServer.start_link(__MODULE__, args)
   end
 
-  defp pool_name(x) do
-    String.to_atom("worker_pool" <> x)
-  end
-
   def init(concurrency) do
-    worker_state = %{}
+    worker_initial_state = %{}
 
-    poolboy_config = [
-      worker_module: ParaReq.Pool.Worker,
-      size: concurrency,
-      max_overflow: 0,
-      strategy: :lifo
+    worker_pool_config = [
+      {:name, {:local, :worker_pool}},
+      {:worker_module, ParaReq.Pool.Worker},
+      {:size, concurrency},
+      {:max_overflow, 0}
     ]
 
     connection_pool_options = [
@@ -26,17 +22,14 @@ defmodule ParaReq.Pool do
     HTTPoison.start
 
     children = [
-      :poolboy.child_spec(pool_name("1"), poolboy_config ++ [name: [local: pool_name("1")]], worker_state),
-      :poolboy.child_spec(pool_name("2"), poolboy_config ++ [name: [local: pool_name("2")]], worker_state),
-      :poolboy.child_spec(pool_name("3"), poolboy_config ++ [name: [local: pool_name("3")]], worker_state),
-      :poolboy.child_spec(pool_name("4"), poolboy_config ++ [name: [local: pool_name("4")]], worker_state)
+      :poolboy.child_spec(:worker_pool, worker_pool_config, worker_initial_state)
     ]
 
     :application.set_env(:hackney, :max_connections, 60_000)
     :application.set_env(:hackney, :timeout, 10_000)
     :application.set_env(:hackney, :use_default_pool, false)
 
-    IO.inspect Application.get_all_env(:hackney)
+    # IO.inspect Application.get_all_env(:hackney)
     options = [
       strategy: :one_for_one,
       intensity: 10,
@@ -47,29 +40,49 @@ defmodule ParaReq.Pool do
     Supervisor.start_link(children, options)
   end
 
-  def start(concurrency) do
+  def start do
     spawn(fn -> ParaReq.Pool.Stats.watch end)
-    Enum.each(1..4, fn x ->
-      Enum.each(1..concurrency, fn n ->
-        spawn(fn ->
-          dispatch_worker(n, Integer.to_string(x))
-        end)
+    pid = spawn(fn -> dispatcher end)
+    Process.register(pid, :dispatcher)
+    :global.sync
+    Enum.each(1..7, fn _ ->
+      spawn(fn ->
+        pid = Process.whereis(:dispatcher)
+        if pid == nil do
+          pid = spawn(fn -> dispatcher end)
+          Process.register(pid, :dispatcher)
+        end
+        for _ <- Stream.cycle([:ok]) do
+          send :dispatcher, :spawn
+          :timer.sleep 3
+        end
       end)
+      :timer.sleep 1_000
     end)
   end
 
-  def dispatch_worker(n, x) do
-    try do
-      :poolboy.transaction(
-        pool_name(x),
-        fn(pid) -> ParaReq.Pool.Worker.request(pid, %{n: n}) end,
-        :infinity
-      )
-    rescue
-      _ -> nil # do nothing, repeater on its way
-    catch
-      _, _ -> nil # same
+  def dispatcher do
+    for _ <- Stream.cycle([:ok]) do
+      receive do
+        :spawn ->
+          spawn(fn ->
+            try do
+              :poolboy.transaction(
+                :worker_pool,
+                fn(pid) -> ParaReq.Pool.Worker.request(pid, %{n: 1}) end,
+                50
+              )
+            rescue
+              _ -> nil # nothing, repeater on its way
+            catch
+              _, _ -> nil # same
+            end
+            send :dispatcher, :spawn
+          end)
+        after
+          50 ->
+            :ok
+      end
     end
-    dispatch_worker(n, x)
   end
 end
