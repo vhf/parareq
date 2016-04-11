@@ -5,12 +5,13 @@ MIX_ENV=prod nice -n 19 elixir -pa _build/prod/consolidated --no-halt --erl "+A 
 +K true \
 +P 134217727 \
 +S 16:8 \
--sname rss" \
+-sname rss
++e 256000" \
 --erl "-env ERL_MAX_PORTS 500000" \
---erl "+Q 500000 -spp true" \
+--erl "+Q 262144 -spp true" \
 --erl "-kernel inet_dist_listen_min 10000" \
 --erl "-kernel inet_dist_listen_max 65000" \
 --erl "-kernel inet_default_connect_options [{nodelay,true}]" \
 --erl "+t 10485760 +fnu +hms 8192 +hmbs 8192 \
--env ERL_MAX_ETS_TABLES 1000000 \
-+zdbbl 48000 +e 56000" -S mix
+-env ERL_MAX_ETS_TABLES 256000 \
++zdbbl 2097151" -S mix

@@ -1,8 +1,8 @@
 defmodule ParaReq.Pool.Worker do
   use GenServer
 
-  @conn_timeout 500
-  @recv_timeout 500
+  @conn_timeout 5_000
+  @recv_timeout 5_000
 
   def start_link(state) do
     :gen_server.start_link(__MODULE__, state, [])
@@ -59,7 +59,7 @@ defmodule ParaReq.Pool.Worker do
     end
     Cache.inc(:reqs_alive, -1)
     Cache.inc(:reqs_done)
-    handle_call(%{n: n}, from, nil)
+    #handle_call(%{n: n}, from, nil)
     {:reply, :done, nil}
   end
 

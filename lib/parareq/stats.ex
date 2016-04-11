@@ -6,6 +6,7 @@ defmodule ParaReq.Pool.Stats do
     log = File.open!("./output/3_log", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
     for _ <- Stream.cycle([:ok]) do
       :timer.sleep(@freq * 1_000)
+      # IO.inspect :sys.get_state(:worker_pool)
       done = round(Cache.check(:reqs_done) / @freq)
       if done == 0 do
         done = 1
