@@ -1,6 +1,9 @@
 defmodule ParaReq.Pool.Worker do
   use GenServer
 
+  @conn_timeout 500
+  @recv_timeout 500
+
   def start_link(state) do
     :gen_server.start_link(__MODULE__, state, [])
   end
@@ -16,14 +19,22 @@ defmodule ParaReq.Pool.Worker do
     req =
       try do
         url
-        |> HTTPoison.head
+        |> HTTPoison.head([], [
+          timeout: @conn_timeout,
+          recv_timeout: @recv_timeout,
+          hackney: [pool: :connection_pool]
+        ])
       rescue
         e in CaseClauseError ->
           case e do
             %CaseClauseError{term: {:error, :bad_request}} ->
               url
               |> String.replace("http://", "https://")
-              |> HTTPoison.head
+              |> HTTPoison.head([], [
+                timeout: @conn_timeout,
+                recv_timeout: @recv_timeout,
+                hackney: [pool: :connection_pool]
+              ])
           end
       end
     case req do

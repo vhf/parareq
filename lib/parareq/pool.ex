@@ -17,12 +17,22 @@ defmodule ParaReq.Pool do
       {:max_overflow, 0}
     ]
 
+    pool_options = [
+      {:timeout, 10_000},
+      {:max_connections, 10}
+    ]
+
+    :hackney_pool.start_pool(:connection_pool, pool_options)
+    HTTPoison.start
+
     children = [
+#      :hackney_pool.child_spec(:connection_pool, pool_options),
       :poolboy.child_spec(pool_name(), poolboy_config, worker_state)
     ]
 
     :application.set_env(:hackney, :max_connections, 50_000)
-    :application.set_env(:hackney, :timeout, 500)
+    :application.set_env(:hackney, :timeout, 10_000)
+    :application.set_env(:hackney, :use_default_pool, false)
 
     IO.inspect Application.get_all_env(:hackney)
     options = [

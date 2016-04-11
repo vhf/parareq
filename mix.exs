@@ -13,7 +13,7 @@ defmodule ParaReq.Mixfile do
   def application do
     [
       mod: {ParaReq, []},
-      applications: [:logger, :httpoison, :poolboy, :timex]
+      applications: [:logger, :poolboy, :timex]
     ]
   end
 

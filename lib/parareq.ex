@@ -1,7 +1,7 @@
 defmodule ParaReq do
   use Supervisor
 
-  @concurrency 1_000
+  @concurrency 250
 
   def init([state]) do
     {:ok, state}
@@ -36,7 +36,7 @@ defmodule ParaReq do
 
   def stream do
     excluded = File.open!("./output/0_excluded", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
-    {:ok, pid} = BlockingQueue.start_link(round(@concurrency*20))
+    {:ok, pid} = BlockingQueue.start_link(round(@concurrency*5))
     File.stream!("./input", [:utf8])
     |> Stream.map(&CCUtils.preprocess(&1, excluded))
     |> Stream.filter(&CCUtils.filter(&1))
