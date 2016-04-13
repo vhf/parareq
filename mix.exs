@@ -13,15 +13,15 @@ defmodule ParaReq.Mixfile do
   def application do
     [
       mod: {ParaReq, []},
-      applications: [:logger, :poolboy, :timex]
+      applications: [:logger, :timex, :worker_pool]
     ]
   end
 
   defp deps do
     [
       {:httpoison, "~> 0.8.2"},
-      {:poolboy, "~> 1.5"},
       {:mem, "~> 0.2.0"},
+      {:worker_pool, "~> 1.0.4"},
       {:timex, "~> 2.1.4"},
       {:blocking_queue, "~> 1.0"}
     ]

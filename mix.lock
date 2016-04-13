@@ -2,13 +2,13 @@
   "certifi": {:hex, :certifi, "0.4.0"},
   "combine": {:hex, :combine, "0.7.0"},
   "gettext": {:hex, :gettext, "0.11.0"},
-  "hackney": {:hex, :hackney, "1.5.7"},
-  "httpoison": {:hex, :httpoison, "0.8.2"},
+  "hackney": {:hex, :hackney, "1.6.0"},
+  "httpoison": {:hex, :httpoison, "0.8.3"},
   "idna": {:hex, :idna, "1.2.0"},
   "mem": {:hex, :mem, "0.2.0"},
   "metrics": {:hex, :metrics, "1.0.1"},
   "mimerl": {:hex, :mimerl, "1.0.2"},
-  "poolboy": {:hex, :poolboy, "1.5.1"},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.0"},
   "timex": {:hex, :timex, "2.1.4"},
-  "tzdata": {:hex, :tzdata, "0.5.7"}}
+  "tzdata": {:hex, :tzdata, "0.5.7"},
+  "worker_pool": {:hex, :worker_pool, "1.0.4"}}

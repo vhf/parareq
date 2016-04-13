@@ -1,7 +1,7 @@
 defmodule ParaReq do
   use Supervisor
 
-  @concurrency 1_000
+  @concurrency 100
 
   def init([state]) do
     {:ok, state}
@@ -27,11 +27,10 @@ defmodule ParaReq do
       period: 1,
       name: ParaReq.Supervisor
     ]
-    ret = Supervisor.start_link(children, options)
-
+    Supervisor.start_link(children, options)
     # start pooling requests
-    ParaReq.Pool.start
-    ret
+    ret = ParaReq.Pool.start(@concurrency)
+    {ret, self}
   end
 
   def stream do
