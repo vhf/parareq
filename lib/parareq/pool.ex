@@ -1,6 +1,6 @@
 defmodule ParaReq.Pool do
-  @timeout 10_000
-  @max_connections 60_000
+  @timeout 150_000
+  @max_connections 64_000
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
@@ -8,8 +8,8 @@ defmodule ParaReq.Pool do
 
   def init(concurrency) do
     connection_pool_options = [
-      {:timeout, 10_000},
-      {:max_connections, 60_000}
+      {:timeout, @timeout},
+      {:max_connections, @max_connections}
     ]
     :hackney_pool.start_pool(:connection_pool, connection_pool_options)
     :application.set_env(:hackney, :max_connections, @max_connections)
@@ -30,13 +30,33 @@ defmodule ParaReq.Pool do
     Supervisor.start_link(children, options)
   end
 
-  def start(concurrency) do
-    spawn(fn -> ParaReq.Pool.Stats.watch end)
-    Enum.each(1..concurrency, fn _ ->
-      :wpool_worker.cast(:requester_pool, ParaReq.Pool.Worker, :perform, [])
-      # :wpool.call(:requester_pool, {ParaReq.Pool.Worker.perform}, :best_worker, :infinity)
-      :timer.sleep(25)
+  def dead(concurrency) do
+    pool = :wpool.stats(:requester_pool)
+    alive = Enum.reduce(pool[:workers], 0, fn {_, xs}, acc ->
+      case Keyword.has_key?(xs, :task) do
+        true -> acc + 1
+        false -> acc + 0
+      end
     end)
+    concurrency - alive
+  end
+
+  def create_workers(n) do
+    Enum.each(1..n, fn _ ->
+      :wpool_worker.cast(:requester_pool, ParaReq.Pool.Worker, :perform, [])
+      :timer.sleep(10)
+    end)
+  end
+
+  def start(concurrency) do
+    # :observer.start
+    spawn(fn -> ParaReq.Pool.Stats.watch end)
+    for _ <- Stream.cycle([:ok]) do
+      case dead(concurrency) do
+        0 -> :timer.sleep(500)
+        n -> create_workers(n)
+      end
+    end
     :ok
   end
 end

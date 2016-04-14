@@ -1,7 +1,7 @@
 defmodule ParaReq do
   use Supervisor
 
-  @concurrency 100
+  @concurrency 50
 
   def init([state]) do
     {:ok, state}
@@ -14,8 +14,14 @@ defmodule ParaReq do
     Process.register(pid, :queue)
 
     # start the result server
-    pid = spawn(fn -> ParaReq.ResultListener.start end)
-    Process.register(pid, :result_listener)
+    pid = spawn(fn -> ParaReq.ResultListener.tried end)
+    Process.register(pid, :tried)
+    pid = spawn(fn -> ParaReq.ResultListener.good end)
+    Process.register(pid, :good)
+    pid = spawn(fn -> ParaReq.ResultListener.error end)
+    Process.register(pid, :error)
+    pid = spawn(fn -> ParaReq.ResultListener.exception end)
+    Process.register(pid, :exception)
 
     children = [
       Cache.child_spec,

@@ -6,9 +6,9 @@ tried=$(wc -l ./output/1_tried | column -t | cut -d' ' -f1)
 error=$(wc -l ./output/2_error | column -t | cut -d' ' -f1)
 exception=$(wc -l ./output/2_exception | column -t | cut -d' ' -f1)
 good=$(wc -l ./output/2_good | column -t | cut -d' ' -f1)
-s200=$(grep -P '^\d{1,}\t200' ./output/2_good | wc -l | column -t | cut -d' ' -f1)
-s200xml=$(grep -P '^\d{1,}\t200.*\t.*\t.*xml.*$' ./output/2_good | wc -l | column -t | cut -d' ' -f1)
-s200xmlu=$(grep -P '^\d{1,}\t200.*\t.*\t.*xml.*$' ./output/2_good | sort -u | wc -l | column -t | cut -d' ' -f1)
+s200=$(grep -P '^200' ./output/2_good | wc -l | column -t | cut -d' ' -f1)
+s200xml=$(grep -P '^200.*\t.*\t.*xml.*$' ./output/2_good | wc -l | column -t | cut -d' ' -f1)
+s200xmlu=$(grep -P '^200.*\t.*\t.*xml.*$' ./output/2_good | sort -u | wc -l | column -t | cut -d' ' -f1)
 
 ex_and_tri=$((excluded + tried))
 res=$((error + exception + good))
@@ -25,4 +25,4 @@ echo $s200xmlu "HTTP200 + XML | unique"
 echo
 ss -s
 
-sudo lsof -c beam.smp | grep ESTABLISHED | cut -d'n' -f2 | cut -d':' -f2 | cut -d'-' -f1 | uniq | wc -l
+# sudo lsof -c beam.smp | grep ESTABLISHED | cut -d'n' -f2 | cut -d':' -f2 | cut -d'-' -f1 | uniq | wc -l
