@@ -1,7 +1,7 @@
 defmodule ParaReq do
   use Supervisor
 
-  @concurrency 50
+  @concurrency 50_000
 
   def init([state]) do
     {:ok, state}

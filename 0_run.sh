@@ -19,6 +19,6 @@ MIX_ENV=prod nice -n 0 elixir -pa _build/prod/consolidated --no-halt --erl "\
 +hms 8192 \
 +hmbs 8192 \
 -env ERL_MAX_ETS_TABLES 256000 \
--env ERTS_MAX_PORTS 1048576
--env ERL_FULLSWEEP_AFTER 1000
+-env ERTS_MAX_PORTS 1048576 \
+-env ERL_FULLSWEEP_AFTER 1000 \
 +zdbbl 2097151" -S mix
