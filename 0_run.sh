@@ -12,7 +12,7 @@ MIX_ENV=prod nice -n 0 elixir -pa _build/prod/consolidated --no-halt --erl "\
 -spp true \
 -kernel inet_dist_listen_min 10000 \
 -kernel inet_dist_listen_max 65000 \
-+-kernel inet_default_listen_options [{nodelay,true},{sndbuf,16384},{recbuf,4096}] \
+-kernel inet_default_listen_options [{nodelay,true},{sndbuf,16384},{recbuf,4096}] \
 -kernel inet_default_connect_options [{nodelay,true}] \
 +t 10485760 \
 +fnu \
