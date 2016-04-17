@@ -1,6 +1,6 @@
 defmodule ParaReq.Pool do
-  @timeout 150_000
-  @max_connections 64_000
+  @timeout 120_000
+  @max_connections 50_000
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
@@ -44,7 +44,6 @@ defmodule ParaReq.Pool do
   def create_workers(n) do
     Enum.each(1..n, fn _ ->
       :wpool_worker.cast(:requester_pool, ParaReq.Pool.Worker, :perform, [])
-      :timer.sleep(10)
     end)
   end
 
@@ -52,7 +51,7 @@ defmodule ParaReq.Pool do
     spawn(fn -> ParaReq.Pool.Stats.watch end)
     for _ <- Stream.cycle([:ok]) do
       case dead do
-        0 -> :timer.sleep(500)
+        0 -> :timer.sleep(100)
         n -> create_workers(n)
       end
     end

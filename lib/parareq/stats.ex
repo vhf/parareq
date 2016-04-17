@@ -6,13 +6,14 @@ defmodule ParaReq.Pool.Stats do
     for _ <- Stream.cycle([:ok]) do
       :timer.sleep(freq * 1_000)
       {:ok, time} = DateTime.now("Europe/Zurich") |> Timex.format("{ISO:Extended}")
-      done = round(Cache.check(:reqs_done) / freq)
+      reqs_done = Cache.check(:reqs_done)
+      done = round(reqs_done / freq)
       alive = Cache.check(:reqs_alive)
       line =
         cond do
-          done > 0 ->
-            rel_errors = round(((Cache.check(:errors) / freq / done) * 10_000)) / 100
-            rel_timeouts = round(((Cache.check(:timeouts) / freq / done) * 10_000)) / 100
+          reqs_done > 0 ->
+            rel_errors = round(((Cache.check(:errors) / freq / reqs_done) * 10_000)) / 100
+            rel_timeouts = round(((Cache.check(:timeouts) / freq / reqs_done) * 10_000)) / 100
             "#{time}\t%d: #{done}/s\t%a: #{alive}\t%e: #{rel_errors}\t%t: #{rel_timeouts}"
           true ->
             count_errors = Cache.check(:errors)

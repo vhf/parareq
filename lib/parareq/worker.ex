@@ -11,7 +11,7 @@ defmodule ParaReq.Pool.Worker do
       |> HTTPoison.head(@headers, [
         timeout: @conn_timeout,
         recv_timeout: @recv_timeout,
-        hackney: [pool: :connection_pool]
+        hackney: [pool: :connection_pool, max_redirect: 3]
       ])
     end
     req =
@@ -26,6 +26,8 @@ defmodule ParaReq.Pool.Worker do
               send :tried, {:tried, %{url: url, attempts: attempts}}
               fun.(url)
           end
+      catch
+        x -> {:exception, x}
       end
     case req do
       {:ok, %HTTPoison.Response{headers: headers, status_code: code}} ->
