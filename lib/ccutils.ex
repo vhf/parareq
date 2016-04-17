@@ -8,16 +8,18 @@ defmodule CCUtils do
     |> String.split("\t")
     |> Enum.map(&String.strip/1)
 
-    cond do
-      2 != length(splat) ->
-        IO.write excluded, "toomanycols " <> List.to_string(splat) <> "\n"
-        %{url: :excluded}
-      splat |> List.last |> String.contains?("app://") ->
-        IO.write excluded, "app:// " <> List.to_string(splat) <> "\n"
-        %{url: :excluded}
-      true ->
-        construct(splat)
-    end
+    url =
+      cond do
+        2 != length(splat) ->
+          IO.write excluded, "toomanycols " <> List.to_string(splat) <> "\n"
+          :excluded
+        splat |> List.last |> String.contains?("app://") ->
+          IO.write excluded, "app:// " <> List.to_string(splat) <> "\n"
+          :excluded
+        true ->
+          construct(splat)
+      end
+    %{url: url, attempts: 1}
   end
 
   def filter(%{url: url}) do
@@ -46,6 +48,6 @@ defmodule CCUtils do
         true ->
           "http://" <> xs[:host] <> "/" <> xs[:path_or_url]
       end
-    %{url: url, attempts: 1}
+    url
   end
 end

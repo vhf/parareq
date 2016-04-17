@@ -42,7 +42,7 @@ defmodule ParaReq do
     {:ok, pid} = BlockingQueue.start_link(round(concurrency*5))
     File.stream!("./input", [:utf8])
     |> Stream.map(&CCUtils.preprocess(&1, excluded))
-    |> Stream.filter(&CCUtils.filter(&1))
+    |> Stream.filter(&CCUtils.filter/1)
     |> BlockingQueue.push_stream(pid)
     pid
   end
