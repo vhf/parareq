@@ -1,23 +1,31 @@
 defmodule ParaReq.Pool.Stats do
   use Timex
-  @freq 5 # in seconds
 
   def watch do
     log = File.open!("./output/3_log", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
     for _ <- Stream.cycle([:ok]) do
-      :timer.sleep(@freq * 1_000)
-      done = round(Cache.check(:reqs_done) / @freq)
-      if done == 0 do
-        done = 1
-      end
-      Cache.set(:reqs_done, 0)
-      alive = Cache.check(:reqs_alive)
-      rel_timeouts = round(((Cache.check(:timeout) / @freq / done) * 10000)) / 100
-      Cache.set(:timeout, 0)
+      :timer.sleep(freq * 1_000)
       {:ok, time} = DateTime.now("Europe/Zurich") |> Timex.format("{ISO:Extended}")
-      line = "#{time}\t#{done}/s\t#{alive}\t#{rel_timeouts}%"
+      done = round(Cache.check(:reqs_done) / freq)
+      alive = Cache.check(:reqs_alive)
+      line =
+        cond do
+          done > 0 ->
+            rel_errors = round(((Cache.check(:errors) / freq / done) * 10_000)) / 100
+            rel_timeouts = round(((Cache.check(:timeouts) / freq / done) * 10_000)) / 100
+            "#{time}\t%d: #{done}/s\t%a: #{alive}\t%e: #{rel_errors}\t%t: #{rel_timeouts}"
+          true ->
+            count_errors = Cache.check(:errors)
+            count_timeouts = Cache.check(:timeouts)
+            "#{time}\t%d: 0/s\t%a: #{alive}\te: #{count_errors}\tt: #{count_timeouts}"
+        end
       IO.puts line
       IO.write log, line <> "\n"
+      Cache.set(:reqs_done, 0)
+      Cache.set(:errors, 0)
+      Cache.set(:timeouts, 0)
     end
   end
+
+  defp freq, do: Application.get_env(:parareq, :watch_freq)
 end

@@ -6,7 +6,7 @@ defmodule ParaReq.Pool do
     GenServer.start_link(__MODULE__, args)
   end
 
-  def init(concurrency) do
+  def init(count_children) do
     connection_pool_options = [
       {:timeout, @timeout},
       {:max_connections, @max_connections}
@@ -19,8 +19,8 @@ defmodule ParaReq.Pool do
 
     :wpool.start_sup_pool(:requester_pool, [
       overrun_warning: :infinity,
-      workers: concurrency
-    ]) # random_worker, next_worker, available_worker
+      workers: count_children
+    ])
 
     children = []
     options = [
@@ -30,7 +30,7 @@ defmodule ParaReq.Pool do
     Supervisor.start_link(children, options)
   end
 
-  def dead(concurrency) do
+  def dead do
     pool = :wpool.stats(:requester_pool)
     alive = Enum.reduce(pool[:workers], 0, fn {_, xs}, acc ->
       case Keyword.has_key?(xs, :task) do
@@ -48,15 +48,16 @@ defmodule ParaReq.Pool do
     end)
   end
 
-  def start(concurrency) do
-    # :observer.start
+  def start do
     spawn(fn -> ParaReq.Pool.Stats.watch end)
     for _ <- Stream.cycle([:ok]) do
-      case dead(concurrency) do
+      case dead do
         0 -> :timer.sleep(500)
         n -> create_workers(n)
       end
     end
     :ok
   end
+
+  defp concurrency, do: Application.get_env(:parareq, :concurrency)
 end

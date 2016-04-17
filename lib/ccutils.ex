@@ -20,9 +20,9 @@ defmodule CCUtils do
     end
   end
 
-  def filter(arg) do
+  def filter(%{url: url}) do
     cond do
-      is_bitstring(arg) ->
+      is_bitstring(url) ->
         true
       true ->
         false
@@ -46,6 +46,6 @@ defmodule CCUtils do
         true ->
           "http://" <> xs[:host] <> "/" <> xs[:path_or_url]
       end
-    url
+    %{url: url, attempts: 1}
   end
 end
