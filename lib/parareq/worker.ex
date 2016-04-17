@@ -6,6 +6,7 @@ defmodule ParaReq.Pool.Worker do
   def perform do
     %{url: url, attempts: attempts} = BlockingQueue.pop :queue
     Cache.inc(:reqs_alive)
+    Cache.inc(:reqs_done)
     fun = fn url -> url
       |> HTTPoison.head(@headers, [
         timeout: @conn_timeout,
@@ -47,7 +48,6 @@ defmodule ParaReq.Pool.Worker do
         send :exception, {:exception, %{attempts: attempts, url: url}}
     end
     Cache.inc(:reqs_alive, -1)
-    Cache.inc(:reqs_done)
     perform
   end
 end
