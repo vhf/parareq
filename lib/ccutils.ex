@@ -11,10 +11,10 @@ defmodule CCUtils do
     cond do
       2 != length(splat) ->
         IO.write excluded, "toomanycols " <> List.to_string(splat) <> "\n"
-        :excluded
+        %{url: :excluded}
       splat |> List.last |> String.contains?("app://") ->
         IO.write excluded, "app:// " <> List.to_string(splat) <> "\n"
-        :excluded
+        %{url: :excluded}
       true ->
         construct(splat)
     end
