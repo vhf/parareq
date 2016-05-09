@@ -1,7 +1,6 @@
 %{"blocking_queue": {:hex, :blocking_queue, "1.3.0"},
   "certifi": {:hex, :certifi, "0.4.0"},
   "combine": {:hex, :combine, "0.7.0"},
-  "eflame": {:git, "https://github.com/proger/eflame.git", "55f594153d03f41d8dbd6b6da7c784f93fa81345", []},
   "gettext": {:hex, :gettext, "0.11.0"},
   "hackney": {:hex, :hackney, "1.6.0"},
   "idna": {:hex, :idna, "1.2.0"},

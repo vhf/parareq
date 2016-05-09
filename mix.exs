@@ -22,7 +22,6 @@ defmodule ParaReq.Mixfile do
       {:mem, "~> 0.2.0"},
       {:worker_pool, "~> 1.0.4"},
       {:timex, "~> 2.1.4"},
-      {:eflame, ~r/.*/, git: "https://github.com/proger/eflame.git", compile: "rebar compile"},
       {:blocking_queue, "~> 1.0"}
     ]
   end
