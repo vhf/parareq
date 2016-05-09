@@ -33,7 +33,7 @@ defmodule ParaReq do
     ]
     Supervisor.start_link(children, options)
     # start pooling requests
-    ret = ParaReq.Pool.start
+    ret = :eflame.apply(&ParaReq.Pool.start/0, [])
     {ret, self}
   end
 

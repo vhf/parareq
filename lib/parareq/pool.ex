@@ -1,5 +1,5 @@
 defmodule ParaReq.Pool do
-  @timeout 120_000
+  @timeout 20_000
   @max_connections 50_000
 
   def start_link(args) do
@@ -7,15 +7,9 @@ defmodule ParaReq.Pool do
   end
 
   def init(count_children) do
-    connection_pool_options = [
-      {:timeout, @timeout},
-      {:max_connections, @max_connections}
-    ]
-    :hackney_pool.start_pool(:connection_pool, connection_pool_options)
     :application.set_env(:hackney, :max_connections, @max_connections)
     :application.set_env(:hackney, :timeout, @timeout)
     :application.set_env(:hackney, :use_default_pool, false)
-    HTTPoison.start
 
     :wpool.start_sup_pool(:requester_pool, [
       overrun_warning: :infinity,
@@ -38,23 +32,30 @@ defmodule ParaReq.Pool do
         false -> acc + 0
       end
     end)
-    concurrency - alive
+    dead_count = concurrency - alive
+    Cache.inc(:dead_count, dead_count)
+    dead_count
   end
 
   def create_workers(n) do
     Enum.each(1..n, fn _ ->
+      Cache.inc(:spawned_count, 1)
       :wpool_worker.cast(:requester_pool, ParaReq.Pool.Worker, :perform, [])
     end)
   end
 
   def start do
     spawn(fn -> ParaReq.Pool.Stats.watch end)
-    for _ <- Stream.cycle([:ok]) do
+    Enum.each(1..1_000, fn x ->
       case dead do
-        0 -> :timer.sleep(100)
+        0 -> :timer.sleep(1)
         n -> create_workers(n)
       end
-    end
+      :timer.sleep(50)
+      if rem(x, 500) == 0 do
+        IO.puts Integer.to_string(x) <> " already done"
+      end
+    end)
     :ok
   end
 
