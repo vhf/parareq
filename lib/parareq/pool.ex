@@ -53,7 +53,7 @@ defmodule ParaReq.Pool do
       end
       :timer.sleep(50)
       if rem(x, 500) == 0 do
-        IO.puts Integer.to_string(x) <> " already done"
+        IO.puts "#{x} already done"
       end
     end)
     :ok

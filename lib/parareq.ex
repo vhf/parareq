@@ -10,20 +10,15 @@ defmodule ParaReq do
     # start streaming the input
     pid = stream
     Process.register(pid, :queue)
-
-    # start the result server
-    pid = spawn(fn -> ParaReq.ResultListener.tried end)
-    Process.register(pid, :tried)
-    pid = spawn(fn -> ParaReq.ResultListener.good end)
-    Process.register(pid, :good)
-    pid = spawn(fn -> ParaReq.ResultListener.error end)
-    Process.register(pid, :error)
-    pid = spawn(fn -> ParaReq.ResultListener.exception end)
-    Process.register(pid, :exception)
+    # {:ok, manager} = GenEvent.start_link()
+    # Process.register(manager, :manager)
 
     children = [
+      worker(GenEvent, [[name: :manager]]),
+      # worker(ParaReq.Logger, [ParaReq.LoggerWatcher, [name: ParaReq.Logger]]),
+      worker(ParaReq.LoggerWatcher, [:manager]),
       Cache.child_spec,
-      worker(ParaReq.Pool, [concurrency])
+      supervisor(ParaReq.Pool, [concurrency])
     ]
     options = [
       strategy: :one_for_one,
@@ -32,9 +27,7 @@ defmodule ParaReq do
       name: ParaReq.Supervisor
     ]
     Supervisor.start_link(children, options)
-    # start pooling requests
-    ret = ParaReq.Pool.start
-    {ret, self}
+    {:ok, self}
   end
 
   def stream do

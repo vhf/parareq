@@ -34,14 +34,14 @@ defmodule ParaReq.Pool.Worker do
     Cache.inc(:tried)
     req =
       try do
-        send :tried, {:tried, %{url: url, attempts: attempts}}
+        GenEvent.notify(:manager, {:tried, %{url: url, attempts: attempts}})
         request.(url)
       rescue
         e in CaseClauseError ->
           case e do
             %CaseClauseError{term: {:error, :bad_request}} ->
               url = url |> String.replace("http://", "https://")
-              send :tried, {:tried, %{url: url, attempts: attempts}}
+              GenEvent.notify(:manager, {:tried, %{url: url, attempts: attempts}})
               request.(url)
           end
       catch
@@ -54,15 +54,16 @@ defmodule ParaReq.Pool.Worker do
           content_type = "undefined"
         end
         code = code |> Integer.to_string
-        send :good, {:done, %{attempts: attempts, url: url, content_type: content_type, code: code}}
+        GenEvent.notify(:manager, {:done, %{attempts: attempts, url: url, content_type: content_type, code: code}})
       {:error, reason} when is_atom(reason) ->
-        send :error, {:error, %{attempts: attempts, url: url, reason: Atom.to_string(reason)}}
+        GenEvent.notify(:manager, {:error, %{attempts: attempts, url: url, reason: Atom.to_string(reason)}})
       {:error, reason} when is_bitstring(reason) ->
-        send :error, {:error, %{attempts: attempts, url: url, reason: reason}}
+        GenEvent.notify(:manager, {:error, %{attempts: attempts, url: url, reason: reason}})
       {:error, _} ->
-        send :error, {:error, %{attempts: attempts, url: url, reason: "unmatched reason"}}
+        GenEvent.notify(:manager, {:error, %{attempts: attempts, url: url, reason: "unmatched reason"}})
       _ ->
-        send :exception, {:exception, %{attempts: attempts, url: url}}
+        GenEvent.notify(:manager, {:exception, %{attempts: attempts, url: url}})
     end
+    perform # recurse !
   end
 end
