@@ -14,7 +14,7 @@ defmodule ParaReq.Pool.Worker do
 
     # Logger.debug("#{inspect self} fetching #{url} - #{attempts}")
     Cache.inc(:tried)
-    GenEvent.notify(:manager, {:tried, %{url: url, attempts: attempts}})
+    #GenEvent.notify(:manager, {:tried, %{url: url, attempts: attempts}})
 
     case send_request(url) do
       {:ok, code, headers} ->
@@ -22,15 +22,15 @@ defmodule ParaReq.Pool.Worker do
           content_type = "undefined"
         end
         code = code |> Integer.to_string
-        GenEvent.sync_notify(:manager, {:done, %{attempts: attempts, url: url, content_type: content_type, code: code}})
-      {:error, reason} when is_atom(reason) ->
-        GenEvent.sync_notify(:manager, {:error, %{attempts: attempts, url: url, reason: to_string(reason)}})
-      {:error, reason} when is_bitstring(reason) ->
-        GenEvent.sync_notify(:manager, {:error, %{attempts: attempts, url: url, reason: reason}})
-      {:error, _} ->
-        GenEvent.sync_notify(:manager, {:error, %{attempts: attempts, url: url, reason: "unmatched reason"}})
-      _ ->
-        GenEvent.sync_notify(:manager, {:exception, %{attempts: attempts, url: url}})
+        #GenEvent.sync_notify(:manager, {:done, %{attempts: attempts, url: url, content_type: content_type, code: code}})
+      {:error, reason} when is_atom(reason) -> nil
+        #GenEvent.sync_notify(:manager, {:error, %{attempts: attempts, url: url, reason: to_string(reason)}})
+      {:error, reason} when is_bitstring(reason) -> nil
+        #GenEvent.sync_notify(:manager, {:error, %{attempts: attempts, url: url, reason: reason}})
+      {:error, _} -> nil
+        #GenEvent.sync_notify(:manager, {:error, %{attempts: attempts, url: url, reason: "unmatched reason"}})
+      _ -> nil
+        #GenEvent.sync_notify(:manager, {:exception, %{attempts: attempts, url: url}})
     end
     perform
   end
