@@ -1,43 +1,36 @@
 defmodule ParaReq do
-  use Supervisor
+  require Logger
 
   def init([state]) do
     {:ok, state}
   end
 
   def start(_type, _args) do
-    import Supervisor.Spec
-    # start streaming the input
-    pid = stream
-    Process.register(pid, :queue)
-    # {:ok, manager} = GenEvent.start_link()
-    # Process.register(manager, :manager)
-
+    import Supervisor.Spec, warn: false
     children = [
       worker(GenEvent, [[name: :manager]]),
-      # worker(ParaReq.Logger, [ParaReq.LoggerWatcher, [name: ParaReq.Logger]]),
       worker(ParaReq.LoggerWatcher, [:manager]),
+      worker(BlockingQueue, [round(concurrency*5), [name: :queue]]),
       Cache.child_spec,
       supervisor(ParaReq.Pool, [concurrency])
     ]
-    options = [
+    opts = [
       strategy: :one_for_one,
       intensity: 10,
       period: 1,
       name: ParaReq.Supervisor
     ]
-    Supervisor.start_link(children, options)
-    {:ok, self}
+    stat = Supervisor.start_link(children, opts)
+    stream
+    stat
   end
 
   def stream do
+    Logger.info("Filling up BlockingQueue")
     excluded = File.open!("./output/0_excluded", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
-    {:ok, pid} = BlockingQueue.start_link(round(concurrency*5))
-    File.stream!("./input", [:utf8])
-    |> Stream.map(&CCUtils.preprocess(&1, excluded))
+    File.stream!("./input", [:utf8]) |> Stream.map(&CCUtils.preprocess(&1, excluded))
     |> Stream.filter(&CCUtils.filter/1)
-    |> BlockingQueue.push_stream(pid)
-    pid
+    |> BlockingQueue.push_stream(:queue)
   end
 
   defp concurrency, do: Application.get_env(:parareq, :concurrency)

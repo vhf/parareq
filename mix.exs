@@ -13,7 +13,7 @@ defmodule ParaReq.Mixfile do
   def application do
     [
       mod: {ParaReq, []},
-      applications: [:logger, :timex, :worker_pool]
+      applications: [:logger, :timex, :worker_pool, :hackney]
     ]
   end
 
@@ -22,7 +22,8 @@ defmodule ParaReq.Mixfile do
       {:mem, "~> 0.2.0"},
       {:worker_pool, "~> 1.0.4"},
       {:timex, "~> 2.1.4"},
-      {:blocking_queue, "~> 1.0"}
+      {:blocking_queue, "~> 1.0"},
+      {:hackney, "~> 1.6"}
     ]
   end
 end

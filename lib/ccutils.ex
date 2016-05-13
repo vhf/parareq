@@ -5,7 +5,7 @@ defmodule CCUtils do
     splat = line
     |> String.strip
     |> String.replace("&amp;", "&")
-    |> String.split("\t")
+    |> String.split
     |> Enum.map(&String.strip/1)
 
     url =
