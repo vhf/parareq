@@ -49,7 +49,7 @@ defmodule ParaReq.Pool do
   def create_workers(n) do
     Enum.each(1..n, fn _ ->
       Cache.inc(:spawned_count, 1)
-      :wpool_worker.call(:requester_pool, ParaReq.Pool.Worker, :perform, [])
+      :wpool_worker.cast(:requester_pool, ParaReq.Pool.Worker, :perform, [])
     end)
   end
 
@@ -61,7 +61,7 @@ defmodule ParaReq.Pool do
       end
       :timer.sleep(50)
       if rem(x, 500) == 0 do
-        IO.puts "#{x} already done"
+        Logger.debug("#{x} already done")
       end
     end)
     :ok

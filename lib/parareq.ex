@@ -10,7 +10,7 @@ defmodule ParaReq do
     children = [
       worker(GenEvent, [[name: :manager]]),
       worker(ParaReq.LoggerWatcher, [:manager]),
-      worker(BlockingQueue, [round(concurrency*5), [name: :queue]]),
+      worker(BlockingQueue, [round(concurrency*5), [name: :blocking_queue]]),
       Cache.child_spec,
       supervisor(ParaReq.Pool, [concurrency])
     ]
@@ -30,7 +30,7 @@ defmodule ParaReq do
     excluded = File.open!("./output/0_excluded", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
     File.stream!("./input", [:utf8]) |> Stream.map(&CCUtils.preprocess(&1, excluded))
     |> Stream.filter(&CCUtils.filter/1)
-    |> BlockingQueue.push_stream(:queue)
+    |> BlockingQueue.push_stream(:blocking_queue)
   end
 
   defp concurrency, do: Application.get_env(:parareq, :concurrency)

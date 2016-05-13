@@ -20,7 +20,7 @@ defmodule ParaReq.Logger do
       IO.write(file, "(#{attempts}) #{reason}\t#{url}\n")
     end)
     if attempts < max_attempts do
-      BlockingQueue.push :queue, %{attempts: attempts + 1, url: url}
+      BlockingQueue.push :blocking_queue, %{attempts: attempts + 1, url: url}
     end
     Cache.inc(:errors)
     if reason == "connect_timeout" do
@@ -34,7 +34,7 @@ defmodule ParaReq.Logger do
       IO.write("(#{attempts}) exception\t#{url}\n")
     end)
     if attempts < max_attempts do
-      BlockingQueue.push :queue, %{attempts: attempts + 1, url: url}
+      BlockingQueue.push :blocking_queue, %{attempts: attempts + 1, url: url}
     end
 
     {:ok, parent}

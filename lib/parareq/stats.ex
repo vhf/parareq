@@ -1,5 +1,6 @@
 defmodule ParaReq.Pool.Stats do
   use Timex
+  require Logger
 
   def watch do
     log = File.open!("./output/3_log", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
@@ -23,7 +24,7 @@ defmodule ParaReq.Pool.Stats do
           true ->
             "#{time} #{total}\t%d: 0/s\t%a: #{alive}\te: #{count_errors}\tt: #{count_timeouts}\td: #{dead_count}\ts: #{spawned_count}"
         end
-      IO.puts line
+      Logger.debug(line)
       IO.write log, line <> "\n"
       Cache.set(:tried, 0)
       Cache.set(:errors, 0)

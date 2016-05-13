@@ -10,7 +10,7 @@ defmodule ParaReq.Pool.Worker do
 
 
   def perform do
-    %{url: url, attempts: attempts} = BlockingQueue.pop(:queue)
+    %{url: url, attempts: attempts} = BlockingQueue.pop(:blocking_queue)
 
     # Logger.debug("#{inspect self} fetching #{url} - #{attempts}")
     Cache.inc(:tried)
