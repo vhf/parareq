@@ -17,9 +17,8 @@ defmodule ParaReq.Pool.Worker do
 
     case send_request(url) do
       {:ok, code, headers} ->
-        if (content_type = :proplists.get_value("Content-Type", headers)) == :undefined do
-          content_type = "undefined"
-        end
+        # get Content-Type or content-type or return undefined
+        content_type = :proplists.get_value("Content-Type", headers, :proplists.get_value("content-type", headers, "undefined"))
         code = code |> Integer.to_string
         GenEvent.notify(:manager, {:done, %{attempts: attempts, url: url, content_type: content_type, code: code}})
       {:error, reason} when is_atom(reason) -> nil

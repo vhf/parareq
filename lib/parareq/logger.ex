@@ -2,7 +2,7 @@ defmodule ParaReq.Logger do
   require Logger
   use GenEvent
 
-  def init(a) do
+  def init(_) do
     Logger.info("Initializing #{__MODULE__}")
     tried = File.open!("./output/1_tried", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
     good = File.open!("./output/2_good", [:utf8, :read, :write, :read_ahead, :append, :delayed_write])
