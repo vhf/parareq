@@ -5,7 +5,8 @@ defmodule ParaReq.Pool.Worker do
   @recv_timeout 5_000
   @options [
     recv_timeout: 5_000,
-    max_redirect: 3
+    max_redirect: 3,
+    reuseaddr: true,
   ]
 
   def perform do
