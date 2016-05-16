@@ -79,7 +79,7 @@ defmodule ParaReq.Pool do
 
   def start do
     gen_tcp_options = case pooling do
-      true -> Keyword.merge(@gen_tcp_options, [reuseaddr: true, pool: :connection_pool])
+      true -> Keyword.merge(@gen_tcp_options, [pool: :connection_pool])
       _ ->
         @gen_tcp_options
     end
