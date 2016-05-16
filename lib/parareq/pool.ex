@@ -31,6 +31,8 @@ defmodule ParaReq.Pool do
         Logger.info("Setting up a custom Hackney pool (#{pool_size}, #{pool_timeout})")
       false ->
         config.()
+      _ ->
+        :ok
     end
   end
 
