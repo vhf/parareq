@@ -1,22 +1,15 @@
 defmodule ParaReq.Pool.Worker do
   require Logger
   @headers [{"User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2700.0 Safari/537.36"}]
-  @conn_timeout 8_000
-  @recv_timeout 5_000
-  @options [
-    recv_timeout: 5_000,
-    max_redirect: 3,
-    reuseaddr: true,
-  ]
 
-  def perform do
+  def perform(gen_tcp_options) do
     %{url: url, attempts: attempts} = BlockingQueue.pop(:blocking_queue)
 
     # Logger.debug("#{inspect self} fetching #{url} - #{attempts}")
     Cache.inc(:tried)
     GenEvent.notify(:manager, {:tried, %{url: url, attempts: attempts}})
 
-    case send_request(url) do
+    case send_request(url, gen_tcp_options) do
       {:ok, code, headers} ->
         # get Content-Type or content-type or return undefined
         content_type = :proplists.get_value("Content-Type", headers, :proplists.get_value("content-type", headers, "undefined"))
@@ -31,15 +24,15 @@ defmodule ParaReq.Pool.Worker do
       _ -> nil
         GenEvent.notify(:manager, {:exception, %{attempts: attempts, url: url}})
     end
-    perform
+    perform(gen_tcp_options)
   end
 
 
-  def send_request(url) do
+  def send_request(url, gen_tcp_options) do
     Cache.inc(:total)
     Cache.inc(:reqs_alive)
     {:hackney_url, transport, _, _, path, _, _, _, host, port, _, _} = :hackney_url.parse_url(url)
-    connection = :hackney.connect(transport, host, port, @options)
+    connection = :hackney.connect(transport, host, port, gen_tcp_options)
     case connection do
       {:ok, ref} ->
         res = :hackney.send_request(ref, {:head, path, @headers, []})
